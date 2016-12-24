@@ -1,12 +1,15 @@
 package vresky.billings.huron;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +22,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -29,14 +33,10 @@ import com.google.android.gms.location.LocationListener;
 
 import java.util.Date;
 
-// TODO continue updating location when phone is locked, app is placed in the background, or other similar conditions
-// NOTE power saving mode disables GPS when phone is locked
-
-/* both run methods gives DEX 64K limit exceeded and
-    non-zero exit value 2 errors; adding multiDexEnabled fixes both
- *
+/**
+ * Created by Matt on 15/12/2016.
  */
-public class MapsActivity extends FragmentActivity implements
+public class MapsFragment extends Fragment implements
         OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
@@ -73,22 +73,31 @@ public class MapsActivity extends FragmentActivity implements
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
+    // DEBUG
+    MapView mMapView;
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         // initialize GoogleAPIClient
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        createLocationRequest();
+        Activity parentActivity = this.getActivity();
+        if (parentActivity != null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this.getActivity())
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+            createLocationRequest();
+
+        } else {
+            Log.d(TAG, "Context of fragment activity is null.  onCreateView was likely called before onAttach of respective fragment");
+            // potential solution: http://stackoverflow.com/questions/8215308/using-context-in-a-fragment
+        }
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+        Bundle savedInstanceState) {
+        //mMapView = (MapView) getActivity().findV
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.activity_maps, container, false);
     }
@@ -98,13 +107,12 @@ public class MapsActivity extends FragmentActivity implements
      * placed here
      */
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         //setUpMapIfNeeded();
         if (mGoogleApiClient.isConnected()) {
             getDeviceLocation();
-        }
-        else {
+        } else {
             mGoogleApiClient.connect();
         }
     }
@@ -113,12 +121,12 @@ public class MapsActivity extends FragmentActivity implements
      * Stop location updates when the activity is no longer in focus, to reduce battery consumption.
      */
     @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
-        if (mGoogleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+//        if (mGoogleApiClient.isConnected()) {
+//        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
 //            mGoogleApiClient.disconnect();
-        }
+//        }
     }
 
     /**
@@ -133,6 +141,11 @@ public class MapsActivity extends FragmentActivity implements
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        // Add a marker in Sydney and move the camera
+//        LatLng sydney = new LatLng(-34, 151);
+//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, DEFAULT_ZOOM));
+//        42.9918492,-79.2544975
         if (mCurrentLocation != null) {
             LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());    // maybe add default zoom?
             mMap.addMarker(new MarkerOptions().position(latLng).title("You"));  //(latLng).title("Marker"));
@@ -141,7 +154,6 @@ public class MapsActivity extends FragmentActivity implements
             Log.d(TAG, "Current location is null.  Using defaults.");
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, 10));     //zoom to Sydney, Australia
         }
-
     }
 
     /**
@@ -150,12 +162,13 @@ public class MapsActivity extends FragmentActivity implements
      */
     @Override
     public void onConnected(Bundle connectionHint) {
-        // Current Place Details on Map (CPDoM) code
         getDeviceLocation();
-        // Build the map.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+//        // Build the map.
+        //You need to call getFragmentManager() and not getSupportFragementManager inside your fragment.
+        // getFragmentManager() is an instance function of Fragment class and so u can call it
+        // inside a Fragment and it will take the containing Fragment class's current instance reference.
+//        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map_fragment);
+//        mapFragment.getMapAsync(this);
     }
 
     /**
@@ -166,7 +179,7 @@ public class MapsActivity extends FragmentActivity implements
         // Refer to the reference doc for ConnectionResult to see what error codes might
         // be returned in onConnectionFailed.
         Log.d(TAG, "Play services connection failed: ConnectionResult.getErrorCode() = "
-                + result.getErrorCode());
+        + result.getErrorCode());
     }
 
     /**
@@ -216,15 +229,14 @@ public class MapsActivity extends FragmentActivity implements
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
          */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+        if (ContextCompat.checkSelfPermission(this.getContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
         {
             mLocationPermissionGranted = true;
-        }
-        else {
-            ActivityCompat.requestPermissions(this,
-                    new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        } else {
+            ActivityCompat.requestPermissions(this.getActivity(),
+                new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
+                PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
         /*
          * Get the best and most recent location of the device, which may be null in rare
@@ -234,7 +246,7 @@ public class MapsActivity extends FragmentActivity implements
         if (mLocationPermissionGranted) {
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
-                    mLocationRequest, this);
+            mLocationRequest, this);
         }
     }
 
@@ -245,8 +257,8 @@ public class MapsActivity extends FragmentActivity implements
      */
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
+    @NonNull String permissions[],
+    @NonNull int[] grantResults) {
         mLocationPermissionGranted = false;
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
@@ -297,3 +309,5 @@ public class MapsActivity extends FragmentActivity implements
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 }
+
+

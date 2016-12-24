@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_manage_contacts"
+        android:orderInCategory="1"
+        app:showAsAction="never"
+        android:title="@string/manage_contacts"/>
+    <item
+        android:id="@+id/action_toggle_tracking_visibility"
+        android:icon="@drawable/ic_visibility_black_24dp"
+        app:showAsAction="always"
+        android:title="Toggle tracking"/>
+    <!--for testing; literally useless below here-->
+    <item
+        android:id="@+id/action_update_status"
+        android:title="Update status"
+        app:showAsAction="never"/>
+</menu>
