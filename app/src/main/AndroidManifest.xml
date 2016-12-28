@@ -28,25 +28,28 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key"/>
         <activity
-            android:name=".MainActivity">
+            android:name=".MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
-            android:name=".MapsActivity"
-            android:label="@string/title_activity_maps"/>
+            android:name=".ManageContactsActivity"
+            android:screenOrientation="portrait"/>
         <activity
-            android:name=".ManageContactsActivity"/>
+            android:name=".ContactsActivity"
+            android:screenOrientation="portrait"/>
         <activity
-            android:name=".ContactsActivity"/>
-        <!--theme displays activity as a dialog-->
-        <activity
-            android:name=".UpdateStatusActivity"/>
+            android:name=".UpdateStatusActivity"
+            android:screenOrientation="portrait"/>
+        <!--theme displays activity as a dialog, label changes title used for dialog-->
         <activity
             android:name=".AddStatusActivity"
-            android:theme="@android:style/Theme.Holo.Light.Dialog"/>
+            android:label="@string/add_status"
+            android:theme="@android:style/Theme.Holo.Light.Dialog"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

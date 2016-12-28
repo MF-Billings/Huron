@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="default_status_array">
+        <item>Reading</item>
+        <item>Eating</item>
+        <item>Leisure</item>
+        <item>Busy</item>
+        <item>Killing time</item>
+    </string-array>
+</resources>

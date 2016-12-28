@@ -40,12 +40,13 @@ public class ManageContactsActivity extends AppCompatActivity {
         contacts.add(new Contact("Sam"));
         contacts.add(new Contact("Matt"));
 
-        final ArrayAdapter<Contact> contactsArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, contacts);
+        final ArrayAdapter<Contact> contactsArrayAdapter = new ArrayAdapter<>(this, R.layout.standard_list_item,
+                R.id.std_list_item_tv_message, contacts);
 
         // create textview for header in code and add it to the listview
         TextView contactsHeader = new TextView(this);
         contactsHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
-        contactsHeader.setText("Contacts");
+        contactsHeader.setText(getResources().getString(R.string.contacts_literal));
         lvContacts.addHeaderView(contactsHeader);           // must be called before setAdapter if pre-Kitkat (Android 4.4)
         lvContacts.setAdapter(contactsArrayAdapter);
 
@@ -55,19 +56,31 @@ public class ManageContactsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ManageContactsActivity.this, ContactsActivity.class);
-                startActivityForResult(intent, getResources().getInteger(R.integer.ADD_CONTACT_REQUEST));
+                startActivityForResult(intent, ADD_CONTACT_REQUEST);   // getResources().getInteger(R.integer.ADD_CONTACT_REQUEST)
             }
         });
 
-        // TODO replace with code for swiping
+        // NOTE the header counts as a position
+        final SwipeDetector swipeDetector = new SwipeDetector();
+        lvContacts.setOnTouchListener(swipeDetector);
         lvContacts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // position counts HeaderView as the 1st element
-                int contactsIndex = position - 1;
-                contacts.remove(contactsIndex);
-                HeaderViewListAdapter headerViewListAdapter = (HeaderViewListAdapter) lvContacts.getAdapter();
-                ((BaseAdapter) headerViewListAdapter.getWrappedAdapter()).notifyDataSetChanged();
+                if (position > 0 && swipeDetector.swipeDetected()) {
+                    // position counts HeaderView as the 1st element
+                    int contactsIndex = position - 1;
+                    SwipeDetector.Action swipeAction = swipeDetector.getAction();
+
+                    if (swipeAction == SwipeDetector.Action.LEFT_TO_RIGHT) {
+                        contacts.remove(contactsIndex);
+                        HeaderViewListAdapter headerViewListAdapter = (HeaderViewListAdapter) lvContacts.getAdapter();
+                        ((BaseAdapter) headerViewListAdapter.getWrappedAdapter()).notifyDataSetChanged();
+                    } else if (swipeAction == SwipeDetector.Action.RIGHT_TO_LEFT) {
+                        contacts.remove(contactsIndex);
+                        HeaderViewListAdapter headerViewListAdapter = (HeaderViewListAdapter) lvContacts.getAdapter();
+                        ((BaseAdapter) headerViewListAdapter.getWrappedAdapter()).notifyDataSetChanged();
+                    }
+                }
             }
         });
     }

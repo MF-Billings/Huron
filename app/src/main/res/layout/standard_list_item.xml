@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--NEW since Dec. 23 push-->
+<!--creates a format for ListView rows that's easier to swipe-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/std_list_item_tv_message"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:gravity="center_vertical"/>
+</LinearLayout>

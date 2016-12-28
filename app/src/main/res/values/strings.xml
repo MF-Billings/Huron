@@ -1,9 +1,19 @@
 <resources>
     <string name="app_name">Huron</string>
+    <string name="add_status">Add status</string>
     <string name="title_activity_maps">Maps</string>
     <string name="manage_contacts">Manage contacts</string>
     <string name="add_contact">Add a contact</string>
     <string name="cancel_literal">Cancel</string>
+    <string name="contacts_literal">Contacts</string>
     <string name="save_literal">Save</string>
+    <string name="statuses_literal">Statuses</string>
     <string name="contact_parcel_key">contact</string>
+
+    <!--KEYS-->
+
+    <string name="KEY_NEW_STATUS">new status</string>
+
+    <!--FILE NAMES-->
+    <string name="status_file_name">status.txt</string>
 </resources>
