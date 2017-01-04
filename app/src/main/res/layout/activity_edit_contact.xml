@@ -1,40 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
-    <EditText
-        android:id="@+id/et_add_status_new_status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/new_status_hint"
-        android:maxLength="@integer/STATUS_CHARACTER_LIMIT"/>
-    <TextView
-        android:id="@+id/add_status_tv_char_limit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:paddingBottom="3dp"/>
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         style="?android:attr/buttonBarStyle">
 
         <Button
-            android:id="@+id/btn_add_status_cancel"
+            android:id="@+id/edit_contact_btn_cancel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="@string/cancel_literal"
+            android:layout_weight="1"
             style="?android:attr/buttonBarButtonStyle"/>
         <Button
-            android:id="@+id/btn_add_status_save"
+            android:id="@+id/edit_contact_btn_save"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="@string/save_literal"
+            android:layout_weight="1"
             style="?android:attr/buttonBarButtonStyle"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/edit_contact_et_first_name"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:hint="@string/name_literal"/>
+
     </LinearLayout>
 </LinearLayout>

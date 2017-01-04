@@ -2,5 +2,5 @@
 <resources>
     <integer name="ADD_CONTACT_REQUEST">1</integer>
     <integer name="LISTVIEW_HEADER_FONT_SIZE">22</integer>
-    <integer name="STATUS_CHARACTER_LIMIT">60</integer>
+    <integer name="STATUS_CHARACTER_LIMIT">50</integer>
 </resources>

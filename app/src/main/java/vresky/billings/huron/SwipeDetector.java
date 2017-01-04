@@ -1,15 +1,14 @@
 package vresky.billings.huron;
 
-import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
 
 /**
  * Created by Matt on 22/12/2016.
- * NEW since last push
  */
+
+// NOTE this class will be removed in the next commit. Kept temporarily as reference
 public class SwipeDetector implements View.OnTouchListener {
 
     public enum Action {

@@ -8,10 +8,14 @@
         android:id="@+id/btn_add_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add new status"/>
+        android:text="@string/add_status_title"/>
 
-    <ListView
-        android:id="@+id/lv_statuses"
+    <!--<ListView-->
+        <!--android:id="@+id/lv_statuses"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"/>-->
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_statuses"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 </LinearLayout>

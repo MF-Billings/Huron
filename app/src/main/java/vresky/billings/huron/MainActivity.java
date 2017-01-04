@@ -39,6 +39,8 @@ import java.util.Date;
  * Created by Matt on 14/12/2016
  * polls for location updates while app is running in the foreground
  */
+// TODO status list not updated immediately when new status is added, changes to status list aren't saved
+// TODO app seems to initialize location to the default, even when permission is granted. May be a problem of position being requested before permission is granted
 // TODO implement code for saving map state
 // TODO inform user of the necessity of permission tracking for app
 public class MainActivity extends AppCompatActivity implements

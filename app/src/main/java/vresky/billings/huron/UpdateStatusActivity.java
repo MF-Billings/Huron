@@ -1,22 +1,12 @@
 package vresky.billings.huron;
 
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.util.TypedValue;
-import android.view.MotionEvent;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.HeaderViewListAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -29,20 +19,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Matt on 21/12/2016.
- * no way of restoring built-in statuses
  */
+
 public class UpdateStatusActivity extends AppCompatActivity {
 
+    private static final String TAG = UpdateStatusActivity.class.getSimpleName();
     private static final int ADD_STATUS_REQUEST = 1;
-    private static final String PREF_NAME_USER_STATUS_LIST = "user_status_list";
 
-    private SharedPreferences mPrefs;
     private List<String> statusList;
-    private ListView lvStatus;
+    private RecyclerView rvStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,54 +38,32 @@ public class UpdateStatusActivity extends AppCompatActivity {
         setContentView(R.layout.activity_update_status);
 
         statusList = new ArrayList<>();
-        mPrefs = getSharedPreferences(PREF_NAME_USER_STATUS_LIST, MODE_PRIVATE);
-        lvStatus = (ListView) findViewById(R.id.lv_statuses);
+        rvStatus = (RecyclerView) findViewById(R.id.rv_statuses);
         Button btnAddStatus = (Button) findViewById(R.id.btn_add_status);
 
-        TextView statusListHeader = new TextView(this);
-        statusListHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP,
-                getResources().getInteger(R.integer.LISTVIEW_HEADER_FONT_SIZE));
-        statusListHeader.setText(getResources().getString(R.string.statuses_literal));
-        lvStatus.addHeaderView(statusListHeader);
-        final ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(this, R.layout.standard_list_item,
-                R.id.std_list_item_tv_message, statusList);
+        // NOTE this will be removed in the next commit. Kept temporarily as reference
+        // listview code
+//        TextView statusListHeader = new TextView(this);
+//        statusListHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP,
+//                getResources().getInteger(R.integer.LISTVIEW_HEADER_FONT_SIZE));
+//        statusListHeader.setText(getResources().getString(R.string.statuses_literal));
+
+        //rvStatus.addHeaderView(statusListHeader);
+
+        // listview code
+//        final ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(this, R.layout.standard_list_item,
+//                R.id.std_list_item_tv_message, statusList);
 //        final StandardListAdapter statusAdapter = new StandardListAdapter(this, R.layout.standard_list_item,
 //                R.id.std_list_item_tv_message, statusList);d
-        lvStatus.setAdapter(statusAdapter);
+//        lvStatus.setAdapter(statusAdapter);
 
         // LISTENERS
 
         btnAddStatus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(UpdateStatusActivity.this, AddStatusActivity.class);
+                Intent intent = new Intent(getApplicationContext(), AddStatusActivity.class);
                 startActivityForResult(intent, ADD_STATUS_REQUEST);
-
-            }
-        });
-
-        final SwipeDetector swipeDetector = new SwipeDetector();
-        // touch listener changes the data within SwipeDetector
-        lvStatus.setOnTouchListener(swipeDetector);
-        /* uses data provided by touch event in SwipeDetector to essentially condense the information
-         * action
-         */
-        lvStatus.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // 1st condition is to ignore touch or click events on header
-                if (position > 0 && swipeDetector.swipeDetected()) {
-
-                    int statusListIndex = position - 1;
-                    SwipeDetector.Action swipeAction = swipeDetector.getAction();
-                    if (swipeAction == SwipeDetector.Action.LEFT_TO_RIGHT) {
-                        statusList.remove(statusListIndex);
-                        notifyStatusDataSetChanged();
-                    } else if (swipeAction == SwipeDetector.Action.RIGHT_TO_LEFT) {
-                        statusList.remove(statusListIndex);
-                        notifyStatusDataSetChanged();
-                    }
-                }
             }
         });
 
@@ -111,7 +77,7 @@ public class UpdateStatusActivity extends AppCompatActivity {
             while ((data = bReader.readLine()) != null) {
                 statusList.add(data);
             }
-            // DEBUG test list repopulation with defaults
+            // DEBUG test list re-population with defaults
             if (statusList.isEmpty()) {
                 throw new FileNotFoundException();
             }
@@ -124,7 +90,13 @@ public class UpdateStatusActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        rvStatus.setLayoutManager(new LinearLayoutManager(this));
+        StatusRecyclerAdapter statusRecyclerAdapter = new StatusRecyclerAdapter(rvStatus, statusList);
+        rvStatus.setAdapter(statusRecyclerAdapter);
+        statusRecyclerAdapter.itemTouchHelper.attachToRecyclerView(rvStatus);
     }
+
     // maybe move this into another lifecycle method because this occurs before new status is even added
     @Override
     protected void onPause() {
@@ -136,7 +108,11 @@ public class UpdateStatusActivity extends AppCompatActivity {
         try {
             writer = new FileWriter(statusFile);
             bWriter = new BufferedWriter(writer);
-            for (String status : statusList) {
+            // convert the adapter that contains the modified status list into a list
+            int adapterSize = rvStatus.getAdapter().getItemCount();
+            StatusRecyclerAdapter statusAdapter = (StatusRecyclerAdapter) rvStatus.getAdapter();
+            for (int i = 0; i < adapterSize; i++) {
+                String status = statusAdapter.getStatus(i);
                 bWriter.write(status);
                 bWriter.newLine();
             }
@@ -146,18 +122,110 @@ public class UpdateStatusActivity extends AppCompatActivity {
         }
     }
 
-    private void notifyStatusDataSetChanged() {
-        HeaderViewListAdapter headerViewListAdapter = (HeaderViewListAdapter) lvStatus.getAdapter();
-        ((BaseAdapter) headerViewListAdapter.getWrappedAdapter()).notifyDataSetChanged();
-    }
-
+    // used with startActivityForResult
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == ADD_STATUS_REQUEST) {
             if (resultCode == RESULT_OK) {
                 String key = getString(R.string.KEY_NEW_STATUS);
-                statusList.add(data.getStringExtra(key));
-                notifyStatusDataSetChanged();
+                StatusRecyclerAdapter statusAdapter = (StatusRecyclerAdapter)rvStatus.getAdapter();
+                statusAdapter.addStatus(data.getStringExtra(key));
+                statusAdapter.notifyItemInserted(statusAdapter.getItemCount() - 1);
+            } else if (resultCode == RESULT_CANCELED) {
+                // status is empty
+                String errorMsg = "";
+                if (data != null) {
+                    errorMsg = data.getStringExtra(getResources().getString(R.string.KEY_INVALID_STATUS_EDIT));
+                }
+
+                if (errorMsg != null && !errorMsg.isEmpty()) {
+                    Toast.makeText(UpdateStatusActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
+    // NOTE this will be removed in the next commit. Kept temporarily as reference
+//    private void setupItemTouchHelper() {
+//        // callback listens to move and swipe events
+//        final ItemTouchHelper.SimpleCallback itemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+//
+//            // we want to cache these and not allocate anything repeatedly in the onChildDraw method
+//            Drawable background;
+//            Drawable xMark;
+//            int xMarkMargin;
+//            boolean initiated;
+
+//            private void init() {
+//                background = new ColorDrawable(Color.RED);
+//                xMark = ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_clear_24dp);
+//                xMark.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
+//                xMarkMargin = (int) MainActivity.this.getResources().getDimension(R.dimen.ic_clear_margin);
+//                initiated = true;
+//            }
+
+            // for drag & drop - not used
+//            @Override
+//            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+//                return false;
+//            }
+
+//            @Override
+//            public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+//                int position = viewHolder.getAdapterPosition();
+//                StatusRecyclerAdapter adapter = (StatusRecyclerAdapter)recyclerView.getAdapter();
+//                if (StatusRecyclerAdapter.isUndoOn() && StatusRecyclerAdapter.isPendingRemoval(position)) {
+//                    return 0;
+//                }
+//                return super.getSwipeDirs(recyclerView, viewHolder);
+//            }
+
+//            @Override
+//            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+//                int swipedPosition = viewHolder.getAdapterPosition();
+//                StatusRecyclerAdapter adapter = (StatusRecyclerAdapter) rvStatus.getAdapter();
+//                boolean undoOn = adapter.isUndoOn();
+//                if (undoOn) {
+//                    adapter.pendingRemoval(swipedPosition);
+//                } else {
+//                    adapter.remove(swipedPosition);
+//                }
+//                adapter.remove(swipedPosition);
+//            }
+
+
+//            @Override
+//            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+//                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+//                View itemView = viewHolder.itemView;
+//
+//                // not sure why, but this method get's called for viewholder that are already swiped away
+//                if (viewHolder.getAdapterPosition() == -1) {
+//                    // not interested in those
+//                    return;
+//                }
+//
+//                if (!initiated) {
+//                    init();
+//                }
+//
+//                // draw red background
+//                background.setBounds(itemView.getRight() + (int) dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
+//                background.draw(c);
+
+//                // draw x mark
+//                int itemHeight = itemView.getBottom() - itemView.getTop();
+//                int intrinsicWidth = xMark.getIntrinsicWidth();
+//                int intrinsicHeight = xMark.getIntrinsicWidth();
+//
+//                int xMarkLeft = itemView.getRight() - xMarkMargin - intrinsicWidth;
+//                int xMarkRight = itemView.getRight() - xMarkMargin;
+//                int xMarkTop = itemView.getTop() + (itemHeight - intrinsicHeight)/2;
+//                int xMarkBottom = xMarkTop + intrinsicHeight;
+//                xMark.setBounds(xMarkLeft, xMarkTop, xMarkRight, xMarkBottom);
+//
+//                xMark.draw(c);
+//            }
+//        };
+//        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(itemTouchCallback);
+//        itemTouchHelper.attachToRecyclerView(rvStatus);
+//    }
 }

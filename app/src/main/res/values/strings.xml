@@ -1,19 +1,40 @@
 <resources>
     <string name="app_name">Huron</string>
+    <string name="add_status_title">Add new status</string>
     <string name="add_status">Add status</string>
     <string name="title_activity_maps">Maps</string>
     <string name="manage_contacts">Manage contacts</string>
     <string name="add_contact">Add a contact</string>
     <string name="cancel_literal">Cancel</string>
     <string name="contacts_literal">Contacts</string>
+    <string name="characters_remaining_message">Characters remaining: %1$d</string>
+    <string name="delete_literal">Delete</string>
+    <string name="deleted_literal">Deleted</string>
+    <string name="edit_literal">Edit</string>
+    <string name="name_literal">name</string>
+    <string name="new_status_hint">Your new custom status</string>
     <string name="save_literal">Save</string>
     <string name="statuses_literal">Statuses</string>
     <string name="contact_parcel_key">contact</string>
+    <string name="undo_literal">undo</string>
+
+    <string name="invalid_contact_edit_message">No content. Changes discarded.</string>
+    <string name="invalid_status_edit_message_empty">Cannot add an empty status</string>
 
     <!--KEYS-->
 
+    <!--used when Contact class implemented Parcelable. Should remove-->
+    <string name="KEY_PARCELABLE_CONTACT">contact</string>
     <string name="KEY_NEW_STATUS">new status</string>
+    <string name="KEY_INVALID_CONTACT_EDIT">invalid contact edit</string>
+    <string name="KEY_INVALID_STATUS_EDIT">invalid status edit</string>
+    <!--item position within the list-->
+    <string name="KEY_ITEM_POSITION">item position</string>
+
+    <!--TAGS-->
+    <string name="APP_TAG">Huron</string>
 
     <!--FILE NAMES-->
     <string name="status_file_name">status.txt</string>
+    <string name="contacts_file_name">contacts.txt</string>
 </resources>

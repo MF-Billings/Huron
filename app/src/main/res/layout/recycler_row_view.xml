@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--view is adhoc divider-->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    >
+
+    <TextView
+        android:id="@+id/recycler_rv_tv_deleted"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:layout_margin="16dp"
+        android:text="@string/deleted_literal"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"/>
+
+    <TextView
+        android:id="@+id/recycler_rv_tv_message"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:layout_margin="16dp"
+        android:textSize="16sp"
+        android:textStyle="bold"/>
+
+    <Button
+        android:id="@+id/recycler_rv_btn_undo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/undo_literal"
+        android:textAllCaps="true"
+        android:layout_gravity="end|center_vertical"
+        android:textColor="@android:color/white"
+        style="@style/Base.Widget.AppCompat.Button.Borderless"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"
+        android:layout_gravity="bottom"/>
+</FrameLayout>
