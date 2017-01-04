@@ -1,6 +1,7 @@
 package vresky.billings.huron;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -8,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -39,12 +41,24 @@ import java.util.Date;
  * Created by Matt on 14/12/2016
  * polls for location updates while app is running in the foreground
  */
-/* NOTE toggling the tracking using the action button in the toolbar removes the marker but does not
-    replace it. May be an emulator only issue
+/* NOTE Because of the inability of the emulator to regularly update the location there are certain
+    issues that occur when running the app on an emulator
+
+    - when location permission is requested upon running the app, the map does not receive the
+    coordinates of the users location, and while the MyLocation button will de displayed in the
+    upper right, it will not relocate the camera and marker to the user's current location
+
+    - toggling the tracking using the action button in the toolbar removes the marker but does not
+    replace it when run in the emulator
  */
-// TODO app seems to initialize location to the default, even when permission is granted. May be a problem of position being requested before permission is granted
-// TODO implement code for saving map state
-// TODO inform user of the necessity of permission tracking for app
+    // TODO set zoom back to previous amount
+// TODO places multiple markers for the users position - needs more testing when travelling significant distances.
+// I noticed 3 markers placed over a short walk, with 2 being almost on top of one another
+// and the other reflection the current position
+// TODO stop app from constantly re-centering the camera every update (DO THIS BEFORE GOING OUT TO TEST ON PHONE)
+// TODO MyLocation button and tracking seems to disappear when app is launched after the location is set to the user's location
+    // when testing on phone
+// TODO continue to update location when app does not have focus
 public class MainActivity extends AppCompatActivity implements
         OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -59,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted.
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
-    private static final int DEFAULT_ZOOM = 15;
+    private static final int DEFAULT_ZOOM = 5; //15;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
 
@@ -81,10 +95,6 @@ public class MainActivity extends AppCompatActivity implements
     private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
             UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
-    // Keys for storing activity state.
-//    private static final String KEY_CAMERA_POSITION = "camera_position";
-//    private static final String KEY_LOCATION = "location";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,14 +114,27 @@ public class MainActivity extends AppCompatActivity implements
 
     // called when getMapAsync returns; map is ready to be used
     @Override
+    @SuppressWarnings("MissingPermission")
     public void onMapReady(GoogleMap map) {
         mMap = map;
+
         if (mCurrentLocation != null) {
 //            Toast.makeText(MainActivity.this, "mCurrentLocation not null", Toast.LENGTH_SHORT).show();
             LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());    // maybe add default zoom?
+            if (mCurrentLocationMarker != null) {
+                mCurrentLocationMarker.remove();
+                Log.d("marker", "Removed marker during onLocationChanged");
+            }
             mCurrentLocationMarker = mMap.addMarker(mMarkerOptions.position(latLng)
                 .snippet("Latitude: " + latLng.latitude + " Longitude: " + latLng.longitude));
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+
+            // display my-location layer  data, namely the my-location button
+            // TEST
+            if (mLocationPermissionGranted) {
+                mMap.setMyLocationEnabled(true);
+                mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            }
             Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude);
         } else {
             Log.d(TAG, "Current location is null. Using default location.");
@@ -137,10 +160,25 @@ public class MainActivity extends AppCompatActivity implements
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+        // display rationale to user as to why location tracking is necessary and prompt user for permission
+        else {
+            // create and display simple dialog
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setTitle("Location tracking required")
+                    .setMessage(getResources().getString(R.string.location_permission_rationale))
+                    .setPositiveButton("OKAY", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
+                            PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                }
+            });
+
+            AlertDialog rationaleDialog = alertDialogBuilder.create();
+            rationaleDialog.show();
         }
         // get last-know location of device and register for location updates
         if (mLocationPermissionGranted) {
@@ -156,8 +194,14 @@ public class MainActivity extends AppCompatActivity implements
         // update location marker for user
         if (mMap != null) {
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-            mCurrentLocationMarker.remove();
+            if (mCurrentLocationMarker != null) {
+                mCurrentLocationMarker.remove();
+                Log.d("marker", "Removed marker during onLocationChanged");
+            }
             mCurrentLocationMarker = mMap.addMarker(mMarkerOptions.position(latLng));
+            // check that markers are being created
+//            mMap.addMarker(mMarkerOptions.position(latLng));
+            // DEBUG try removing to stop forced camera movement
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
         }
     }

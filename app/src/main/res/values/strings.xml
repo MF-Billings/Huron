@@ -18,6 +18,13 @@
     <string name="contact_parcel_key">contact</string>
     <string name="undo_literal">undo</string>
 
+    <string name="location_permission_rationale">
+        In order to show the location of you and your contacts on the map, this app requires
+        you to grant location access.  Without this the app can\'t help you get in touch with
+        the contacts around you.  After enabling location tracking you can disable it at any time
+        by tapping the icon of an eye at the top of the screen.
+    </string>
+
     <string name="invalid_contact_edit_message">No content. Changes discarded.</string>
     <string name="invalid_status_edit_message_empty">Cannot add an empty status</string>
 
