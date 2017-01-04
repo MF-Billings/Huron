@@ -101,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements
     // MAP  ----------------------------------------------------------------------------------------
 
     // called when getMapAsync returns; map is ready to be used
-    // 42.9917967, -79.2545167
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
