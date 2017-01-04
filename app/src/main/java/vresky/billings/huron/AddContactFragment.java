@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.LayoutInflaterCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +16,7 @@ import android.widget.EditText;
  * better for it to be a stand-alone activity or fragment.
  * Consider using the bundle to keep information if the app is paused and resumed
  */
+// NOTE not currently in use
 public class AddContactFragment extends Fragment {
 
     Contact contact;
@@ -55,7 +54,7 @@ public class AddContactFragment extends Fragment {
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (etFirstName.getText().toString() != "") {
+                if (!etFirstName.getText().toString().equals("")) {
                     contact = new Contact(etFirstName.getText().toString());
                     onDetach();
                 }
