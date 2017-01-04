@@ -22,8 +22,6 @@ import java.util.List;
  * Convert an object at a position into a list row item to be inserted
  * Responsible for efficient use of resources, not event handling.
  */
-// BUG sometimes swipe doesn't actually delete the item.  Think it may be a problem with the list item being moved offscreen
-// BUG sometimes portion of added items remains red
 public class StatusRecyclerAdapter extends RecyclerView.Adapter<StatusRecyclerAdapter.ViewHolder> {
 
     private static final int PENDING_REMOVAL_TIMEOUT = 3000;    // 3 sec

@@ -35,7 +35,6 @@ public class AddStatusActivity extends Activity {
         Button btnSave = (Button) findViewById(R.id.btn_add_status_save);
 
         // initialize tv with proper data
-//        tvCharLimit.setText("Characters remaining: " + getResources().getInteger(R.integer.STATUS_CHARACTER_LIMIT));
         tvCharLimit.setText(getResources().getString(R.string.characters_remaining_message,
                 charsRemaining));
 

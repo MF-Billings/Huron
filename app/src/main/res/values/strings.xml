@@ -11,7 +11,7 @@
     <string name="delete_literal">Delete</string>
     <string name="deleted_literal">Deleted</string>
     <string name="edit_literal">Edit</string>
-    <string name="name_literal">name</string>
+    <string name="name_literal">Name</string>
     <string name="new_status_hint">Your new custom status</string>
     <string name="save_literal">Save</string>
     <string name="statuses_literal">Statuses</string>

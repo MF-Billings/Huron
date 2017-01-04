@@ -34,8 +34,8 @@ public class EditContactActivity extends AppCompatActivity {
         if (obj instanceof Contact) {
             contact = (Contact) obj;
         }
-        //final Contact contact = impetus.getSerializableExtra(getResources().getString(R.string.KEY_PARCELABLE_CONTACT));
-        if (contact.getFirstName() != null) {
+
+        if (contact != null && contact.getFirstName() != null) {
             etFirstName.setText(contact.getFirstName());
         }
 

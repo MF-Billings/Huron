@@ -24,7 +24,7 @@ import java.util.List;
 
 /**
  * Created by Matt on 16/12/2016.
- * consider using a floating action button to add contacts
+ * Main interface for interacting with and viewing user contacts
  */
 // TODO implement add contact functionality
 public class ManageContactsActivity extends AppCompatActivity {
@@ -43,7 +43,7 @@ public class ManageContactsActivity extends AppCompatActivity {
         lvContacts = (ListView) findViewById(R.id.lv_contacts);
         Button btnAddContact = (Button) findViewById(R.id.btn_add_contact);
 
-        //
+        // read in list of contacts
         restoreContacts();
 
         if (contacts.isEmpty()) {
@@ -51,6 +51,9 @@ public class ManageContactsActivity extends AppCompatActivity {
             contacts.add(new Contact("Aaron"));
             contacts.add(new Contact("Sam"));
             contacts.add(new Contact("Kim"));
+
+            // convey that re-population of dummy contacts was intentional
+            Toast.makeText(ManageContactsActivity.this, "DEBUG re-populating empty contacts list with dummy values", Toast.LENGTH_SHORT).show();
         }
 
         contactsArrayAdapter = new ContactsAdapter(this, contacts);
@@ -65,37 +68,12 @@ public class ManageContactsActivity extends AppCompatActivity {
         btnAddContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                // waiting on database interface
             }
         });
-        // previous code for swipe
-
-        // NOTE the header counts as a position
-//        final SwipeDetector swipeDetector = new SwipeDetector();
-//        lvContacts.setOnTouchListener(swipeDetector);
-//        lvContacts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                if (position > 0 && swipeDetector.swipeDetected()) {
-//                    // position counts HeaderView as the 1st element
-//                    int contactsIndex = position - 1;
-//                    SwipeDetector.Action swipeAction = swipeDetector.getAction();
-//
-//                    if (swipeAction == SwipeDetector.Action.LEFT_TO_RIGHT) {
-//                        contacts.remove(contactsIndex);
-//                        HeaderViewListAdapter headerViewListAdapter = (HeaderViewListAdapter) lvContacts.getAdapter();
-//                        ((BaseAdapter) headerViewListAdapter.getWrappedAdapter()).notifyDataSetChanged();
-//                    } else if (swipeAction == SwipeDetector.Action.RIGHT_TO_LEFT) {
-//                        contacts.remove(contactsIndex);
-//                        HeaderViewListAdapter headerViewListAdapter = (HeaderViewListAdapter) lvContacts.getAdapter();
-//                        ((BaseAdapter) headerViewListAdapter.getWrappedAdapter()).notifyDataSetChanged();
-//                    }
-//                }
-//            }
-//        });
     }
 
-    // change may have occured from delete as well
+    // change may have occurred from delete as well
     @Override
     protected void onPause() {
         super.onPause();
@@ -104,7 +82,6 @@ public class ManageContactsActivity extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        Toast.makeText(getApplicationContext(), "contact acknowledged", Toast.LENGTH_SHORT).show();
         if (requestCode == ADD_CONTACT_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Contact addedContact = (Contact)data.getSerializableExtra(getResources().getString(R.string.contact_parcel_key));   // getParceableExtra
@@ -128,10 +105,10 @@ public class ManageContactsActivity extends AppCompatActivity {
                     contacts.set(positionOfModifiedItem, (Contact)data.getSerializableExtra(contactKey)); //getParcelableExtra
                     contactsArrayAdapter.notifyDataSetChanged();
                 } else {
-                    Log.d("Huron", "invalid list index supplied by EditContact activity");
+                    Log.d(getResources().getString(R.string.APP_TAG), "invalid list index supplied by EditContact activity");
                 }
             } else if (resultCode == RESULT_CANCELED) {
-                String toastMsg;
+                String toastMsg = "";
                 String errorMsg = "";
                 if (data != null) {
                     errorMsg = data.getStringExtra(getResources().getString(R.string.KEY_INVALID_CONTACT_EDIT));
@@ -139,11 +116,11 @@ public class ManageContactsActivity extends AppCompatActivity {
                 if (!errorMsg.isEmpty()) {
                     toastMsg = errorMsg;
                 }
-                // DEBUG
-                else {
-                   toastMsg = "cancelled";
+
+                // display user feedback if there is any
+                if (!toastMsg.isEmpty()) {
+                    Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
                 }
-                Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
             }
         }
     }
