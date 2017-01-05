@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="ADD_CONTACT_REQUEST">1</integer>
+    <integer name="MODIFY_STATUS_REQUEST">2</integer>
     <integer name="LISTVIEW_HEADER_FONT_SIZE">22</integer>
     <integer name="STATUS_CHARACTER_LIMIT">50</integer>
+
+    <!--MAP-->
+    <integer name="default_zoom_level">15</integer>
+
+    <integer name="zoom_world">1</integer>
+    <integer name="zoom_landmass_continent">5</integer>
+    <integer name="zoom_city">10</integer>
+    <integer name="zoom_streets">15</integer>
+    <integer name="zoom_buildings">20</integer>
 </resources>

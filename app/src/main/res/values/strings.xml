@@ -8,6 +8,7 @@
     <string name="cancel_literal">Cancel</string>
     <string name="contacts_literal">Contacts</string>
     <string name="characters_remaining_message">Characters remaining: %1$d</string>
+    <string name="default_zoom">Default zoom</string>
     <string name="delete_literal">Delete</string>
     <string name="deleted_literal">Deleted</string>
     <string name="edit_literal">Edit</string>
@@ -28,15 +29,21 @@
     <string name="invalid_contact_edit_message">No content. Changes discarded.</string>
     <string name="invalid_status_edit_message_empty">Cannot add an empty status</string>
 
+    <!--DEBUG-->
+
+    <string name="DEBUG_TRACKING_STATUS">Tracking is %s</string>
+
     <!--KEYS-->
 
     <!--used when Contact class implemented Parcelable. Should remove-->
+    <string name="KEY_GET_INTENT_CLASS_NAME">getIntentClassName</string>
     <string name="KEY_PARCELABLE_CONTACT">contact</string>
     <string name="KEY_NEW_STATUS">new status</string>
     <string name="KEY_INVALID_CONTACT_EDIT">invalid contact edit</string>
     <string name="KEY_INVALID_STATUS_EDIT">invalid status edit</string>
     <!--item position within the list-->
     <string name="KEY_ITEM_POSITION">item position</string>
+    <string name="KEY_CONTACT_STATUS">status</string>
 
     <!--TAGS-->
     <string name="APP_TAG">Huron</string>

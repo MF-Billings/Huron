@@ -12,12 +12,14 @@ import java.io.Serializable;
  * there should probably be some method for updating the database when the list of contacts is
  * modified
  */
+// consider including different pin colors for different contacts
 public class Contact implements Serializable {
 
     private static final String TAG = "Contact";
 
     // FIELDS
 
+    private int id;                     // ties user to their database entry
     private String firstName;
 
     // METHODS
@@ -25,9 +27,16 @@ public class Contact implements Serializable {
     // create a new contact where every field is set individually;
     public Contact() { }
 
+    // delete this later
     public Contact(String firstName) {
         this.firstName = firstName;
     }
+
+    public Contact(int id, String firstName) {
+        this.id = id;
+        this.firstName = firstName;
+    }
+
 
     public String getFirstName() {
         return firstName;

@@ -29,13 +29,9 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-import java.text.DateFormat;
-import java.util.Date;
 
 /**
  * Created by Matt on 14/12/2016
@@ -51,14 +47,8 @@ import java.util.Date;
     - toggling the tracking using the action button in the toolbar removes the marker but does not
     replace it when run in the emulator
  */
-    // TODO set zoom back to previous amount
-// TODO places multiple markers for the users position - needs more testing when travelling significant distances.
-// I noticed 3 markers placed over a short walk, with 2 being almost on top of one another
-// and the other reflection the current position
-// TODO stop app from constantly re-centering the camera every update (DO THIS BEFORE GOING OUT TO TEST ON PHONE)
-// TODO MyLocation button and tracking seems to disappear when app is launched after the location is set to the user's location
-    // when testing on phone
-// TODO continue to update location when app does not have focus
+
+// TODO doesn't track when phone is locked (app in foreground or not) OR get marker to show timestamp
 public class MainActivity extends AppCompatActivity implements
         OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -66,14 +56,16 @@ public class MainActivity extends AppCompatActivity implements
         LocationListener {
 
     public static boolean trackingIsEnabled = true;          // true if the user's location is currently being recorded
-
     private static final String TAG = MainActivity.class.getSimpleName();
+
+//    private ArrayList<Contact>
+
     private GoogleMap mMap;
 
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted.
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
-    private static final int DEFAULT_ZOOM = 5; //15;
+    private static final int DEFAULT_ZOOM = 15;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
 
@@ -105,11 +97,36 @@ public class MainActivity extends AppCompatActivity implements
         MapsInitializer.initialize(getApplicationContext());        // allow use of BitmapDescriptorFactory
         buildGoogleApiClient();
         mGoogleApiClient.connect();
-        mMarkerOptions = new MarkerOptions().title("You")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+//        mMarkerOptions = new MarkerOptions().title("You")
+//                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
         createLocationRequest();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "In onStart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "In onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(TAG, "Before super.onPause");
+        super.onPause();
+        Log.d(TAG, "After super.onPause");
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "Before super.onDestroy");
+        super.onDestroy();
+        Log.d(TAG, "After super.onDestroy");
+    }
     // MAP  ----------------------------------------------------------------------------------------
 
     // called when getMapAsync returns; map is ready to be used
@@ -119,14 +136,17 @@ public class MainActivity extends AppCompatActivity implements
         mMap = map;
 
         if (mCurrentLocation != null) {
-//            Toast.makeText(MainActivity.this, "mCurrentLocation not null", Toast.LENGTH_SHORT).show();
             LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());    // maybe add default zoom?
-            if (mCurrentLocationMarker != null) {
-                mCurrentLocationMarker.remove();
-                Log.d("marker", "Removed marker during onLocationChanged");
-            }
-            mCurrentLocationMarker = mMap.addMarker(mMarkerOptions.position(latLng)
-                .snippet("Latitude: " + latLng.latitude + " Longitude: " + latLng.longitude));
+
+            // DEBUG might need this as I'm getting multiple markers again
+//            if (mCurrentLocationMarker != null) {
+//                mCurrentLocationMarker.remove();
+//                Log.d(TAG, "Marker removed during onMapReady");
+//            }
+//
+//            mCurrentLocationMarker = mMap.addMarker(mMarkerOptions.position(latLng)
+//                    // DEBUG
+//                .snippet("Latitude: " + latLng.latitude + " Longitude: " + latLng.longitude));
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
 
             // display my-location layer  data, namely the my-location button
@@ -135,10 +155,11 @@ public class MainActivity extends AppCompatActivity implements
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
             }
-            Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude);
+            Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude + "\n"
+                + "Time: " + mCurrentLocation.getTime());
         } else {
             Log.d(TAG, "Current location is null. Using default location.");
-            mCurrentLocationMarker = mMap.addMarker(new MarkerOptions().position(mDefaultLocation));
+//            mCurrentLocationMarker = mMap.addMarker(new MarkerOptions().position(mDefaultLocation));
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
         }
     }
@@ -180,29 +201,36 @@ public class MainActivity extends AppCompatActivity implements
             AlertDialog rationaleDialog = alertDialogBuilder.create();
             rationaleDialog.show();
         }
-        // get last-know location of device and register for location updates
+        // get last-known location of device and register for location updates
         if (mLocationPermissionGranted) {
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            enableTracking();
         }
     }
 
     // handle callback when the location changes
     @Override
     public void onLocationChanged(Location location) {
-        mCurrentLocation = location;
-        // update location marker for user
-        if (mMap != null) {
-            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-            if (mCurrentLocationMarker != null) {
-                mCurrentLocationMarker.remove();
-                Log.d("marker", "Removed marker during onLocationChanged");
-            }
-            mCurrentLocationMarker = mMap.addMarker(mMarkerOptions.position(latLng));
-            // check that markers are being created
+        if (trackingIsEnabled) {
+            mCurrentLocation = location;
+            // update location marker for user
+            if (mMap != null) {
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+//                if (mCurrentLocationMarker != null) {
+//                    mCurrentLocationMarker.remove();
+//                    Log.d(TAG, "Marker removed during onLocationChanged");
+//                }
+//                mCurrentLocationMarker = mMap.addMarker(mMarkerOptions.position(latLng));
+//                Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude);
+                Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude + "\n"
+                        + "Time: " + mCurrentLocation.getTime());
+
+                // DEBUG check that markers are being created
 //            mMap.addMarker(mMarkerOptions.position(latLng));
-            // DEBUG try removing to stop forced camera movement
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+
+                // DEBUG removal stops forced camera movement
+//            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+            }
         }
     }
 
@@ -280,6 +308,28 @@ public class MainActivity extends AppCompatActivity implements
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
+    // METHODS -------------------------------------------------------------------------------------
+
+    @SuppressWarnings("MissingPermission")
+    private void disableTracking() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+//        mCurrentLocationMarker.remove();
+//        updateLocationUI();
+        trackingIsEnabled = false;
+        Log.d(TAG, getResources().getString(R.string.DEBUG_TRACKING_STATUS,
+                (trackingIsEnabled) ? "enabled" : "disabled"));
+    }
+    // might need to also place marker
+    @SuppressWarnings("MissingPermission")
+    private void enableTracking() {
+        if (mLocationPermissionGranted) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            trackingIsEnabled = true;
+            Log.d(TAG, getResources().getString(R.string.DEBUG_TRACKING_STATUS,
+                    (trackingIsEnabled) ? "enabled" : "disabled"));
+        }
+    }
+
     // MENU ----------------------------------------------------------------------------------------
 
     // display toolbar
@@ -303,18 +353,13 @@ public class MainActivity extends AppCompatActivity implements
                 if (trackingIsEnabled) {
                     // disable location tracking
                     item.setIcon(R.drawable.ic_visibility_off_black_24dp);
-                    LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-                    mCurrentLocationMarker.remove();
+                    disableTracking();
                 } else {
                     item.setIcon(R.drawable.ic_visibility_black_24dp);
-                    if (mLocationPermissionGranted) {
-                        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-                    }
+                    enableTracking();
                 }
-                trackingIsEnabled = !trackingIsEnabled;
                 Toast.makeText(this, "Tracking " + ((trackingIsEnabled) ? "enabled" : "disabled"),
                         Toast.LENGTH_SHORT).show();
-                Log.d(TAG, "Tracking " + ((trackingIsEnabled) ? "enabled" : "disabled") + " at " + DateFormat.getDateTimeInstance().format(new Date()));
                 break;
             case R.id.action_update_status:
                 intent = new Intent(this, UpdateStatusActivity.class);

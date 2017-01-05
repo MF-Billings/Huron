@@ -7,4 +7,9 @@
         <item>Busy</item>
         <item>Killing time</item>
     </string-array>
+    <string-array name="settings_zoom_level">
+        <item>Buildings</item>
+        <item>Street</item>
+        <item>City</item>
+    </string-array>
 </resources>

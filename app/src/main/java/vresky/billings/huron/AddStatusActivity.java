@@ -15,11 +15,13 @@ import android.widget.TextView;
  * Created by Matt on 22/12/2016.
  * Allows user to create a custom status
  * displays activity as a dialog via dialog theme in AndroidManifest.xml
+ * Originally designed to be used solely for adding new statuses but expanded to handle edits
  */
 public class AddStatusActivity extends Activity {
 
     // keep track of how many characters the user has available for their status
     private int charsRemaining;
+    private boolean getIntentIsStatusAdapter = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,9 +36,24 @@ public class AddStatusActivity extends Activity {
         Button btnCancel = (Button) findViewById(R.id.btn_add_status_cancel);
         Button btnSave = (Button) findViewById(R.id.btn_add_status_save);
 
+        // code for status edit
+        // change the title of the activity if it was started by StatusAdapter to edit a status
+        // the activity works just fine for the purpose if the name displayed is changed to reflect the difference
+        if (getIntent() != null) {
+            String getIntentClassName = getIntent().getStringExtra(getResources().getString(R.string.KEY_GET_INTENT_CLASS_NAME));
+            if (getIntentClassName != null && getIntentClassName.equals(StatusAdapter.class.getSimpleName())) {
+                setTitle("Edit Status");
+
+//                etStatus.setText(getIntent().getStringExtra(getResources().getString(R.string.KEY_CONTACT_STATUS)));
+//                charsRemaining = etStatus.getText().length();
+                getIntentIsStatusAdapter = true;
+            }
+        }
+
         // initialize tv with proper data
         tvCharLimit.setText(getResources().getString(R.string.characters_remaining_message,
                 charsRemaining));
+
 
         // LISTENERS
 
@@ -76,6 +93,12 @@ public class AddStatusActivity extends Activity {
                 String newStatus = et.getText().toString();
 
                 Intent returnIntent = new Intent();
+
+                if (getIntentIsStatusAdapter) {
+                    returnIntent.putExtra(getResources().getString(R.string.KEY_ITEM_POSITION),
+                            getIntent().getIntExtra(
+                                    getResources().getString(R.string.KEY_ITEM_POSITION), -1));
+                }
 
                 // status is invalid
                 if (newStatus.isEmpty()) {
