@@ -47,7 +47,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
     - toggling the tracking using the action button in the toolbar removes the marker but does not
     replace it when run in the emulator
  */
-
 // TODO doesn't track when phone is locked (app in foreground or not) OR get marker to show timestamp
 public class MainActivity extends AppCompatActivity implements
         OnMapReadyCallback,
@@ -102,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements
         createLocationRequest();
     }
 
+    // for debugging purposes
     @Override
     protected void onStart() {
         super.onStart();
@@ -348,6 +348,7 @@ public class MainActivity extends AppCompatActivity implements
                 intent = new Intent(this, ManageContactsActivity.class);
                 startActivity(intent);
                 break;
+            // the eye button
             case R.id.action_toggle_tracking_visibility:
                 // toggle user location tracking
                 if (trackingIsEnabled) {
@@ -363,6 +364,10 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case R.id.action_update_status:
                 intent = new Intent(this, UpdateStatusActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.action_settings:
+                intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
                 break;
             default:

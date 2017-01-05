@@ -35,6 +35,7 @@
 
     <!--KEYS-->
 
+    <string name="SHARED_PREFS_NAME">vresky.billings.huron</string>
     <!--used when Contact class implemented Parcelable. Should remove-->
     <string name="KEY_GET_INTENT_CLASS_NAME">getIntentClassName</string>
     <string name="KEY_PARCELABLE_CONTACT">contact</string>
@@ -51,4 +52,8 @@
     <!--FILE NAMES-->
     <string name="status_file_name">status.txt</string>
     <string name="contacts_file_name">contacts.txt</string>
+    <string name="update_status">Update status</string>
+    <string name="toggle_tracking">Toggle tracking</string>
+    <string name="settings">Settings</string>
+    <string name="your_user_id">your user id</string>
 </resources>

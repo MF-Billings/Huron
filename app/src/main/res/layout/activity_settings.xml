@@ -10,14 +10,14 @@
         style="?android:attr/buttonBarStyle">
 
         <Button
-            android:id="@+id/settings__btn_cancel"
+            android:id="@+id/btn_cancel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/cancel_literal"
             android:layout_weight="1"
             style="?android:attr/buttonBarButtonStyle"/>
         <Button
-            android:id="@+id/settings_btn_save"
+            android:id="@+id/btn_save"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/save_literal"
@@ -25,13 +25,18 @@
             style="?android:attr/buttonBarButtonStyle"/>
     </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/btn_get_user_id"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/default_zoom"/>
+        android:text="@string/your_user_id"/>
+    <!--<TextView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="@string/default_zoom"/>-->
 
-    <Spinner
-        android:id="@+id/settings_spnr_zoom_level"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    <!--<Spinner-->
+        <!--android:id="@+id/settings_spnr_zoom_level"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"/>-->
 </LinearLayout>
