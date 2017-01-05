@@ -54,6 +54,9 @@
             android:theme="@android:style/Theme.Holo.Light.Dialog"
             android:screenOrientation="portrait"/>
         <activity
+            android:name=".RegistrationActivity"
+            android:screenOrientation="portrait"/>
+        <activity
             android:name=".SettingsActivity"
             android:screenOrientation="portrait"/>
     </application>
