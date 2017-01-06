@@ -38,7 +38,6 @@ public class AddContactFragment extends Fragment {
         Button btnCancel = (Button) getView().findViewById(R.id.add_contact_cancel);
         Button btnSave = (Button) getView().findViewById(R.id.add_contact_save);
         final EditText etFirstName = (EditText) getView().findViewById(R.id.et_first_name);
-        EditText etLastName = (EditText) getView().findViewById(R.id.et_last_name);
 
         // assign listeners
 

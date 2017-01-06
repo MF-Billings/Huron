@@ -96,8 +96,6 @@ public class MainActivity extends AppCompatActivity implements
         MapsInitializer.initialize(getApplicationContext());        // allow use of BitmapDescriptorFactory
         buildGoogleApiClient();
         mGoogleApiClient.connect();
-//        mMarkerOptions = new MarkerOptions().title("You")
-//                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
         createLocationRequest();
     }
 
@@ -137,16 +135,6 @@ public class MainActivity extends AppCompatActivity implements
 
         if (mCurrentLocation != null) {
             LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());    // maybe add default zoom?
-
-            // DEBUG might need this as I'm getting multiple markers again
-//            if (mCurrentLocationMarker != null) {
-//                mCurrentLocationMarker.remove();
-//                Log.d(TAG, "Marker removed during onMapReady");
-//            }
-//
-//            mCurrentLocationMarker = mMap.addMarker(mMarkerOptions.position(latLng)
-//                    // DEBUG
-//                .snippet("Latitude: " + latLng.latitude + " Longitude: " + latLng.longitude));
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
 
             // display my-location layer  data, namely the my-location button
@@ -216,20 +204,8 @@ public class MainActivity extends AppCompatActivity implements
             // update location marker for user
             if (mMap != null) {
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-//                if (mCurrentLocationMarker != null) {
-//                    mCurrentLocationMarker.remove();
-//                    Log.d(TAG, "Marker removed during onLocationChanged");
-//                }
-//                mCurrentLocationMarker = mMap.addMarker(mMarkerOptions.position(latLng));
-//                Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude);
                 Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude + "\n"
                         + "Time: " + mCurrentLocation.getTime());
-
-                // DEBUG check that markers are being created
-//            mMap.addMarker(mMarkerOptions.position(latLng));
-
-                // DEBUG removal stops forced camera movement
-//            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
             }
         }
     }
@@ -364,6 +340,10 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case R.id.action_update_status:
                 intent = new Intent(this, UpdateStatusActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.action_register:
+                intent = new Intent(this, RegistrationActivity.class);
                 startActivity(intent);
                 break;
             case R.id.action_settings:
