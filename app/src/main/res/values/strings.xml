@@ -2,9 +2,11 @@
     <string name="app_name">Huron</string>
     <string name="add_status_title">Add new status</string>
     <string name="add_status">Add status</string>
+    <string name="add_contact_camel_literal">Add Contact</string>
     <string name="title_activity_maps">Maps</string>
     <string name="manage_contacts">Manage contacts</string>
     <string name="add_contact">Add a contact</string>
+    <string name="enter_contact_id_message">Enter your contact\'s id</string>
     <string name="cancel_literal">Cancel</string>
     <string name="contacts_literal">Contacts</string>
     <string name="characters_remaining_message">Characters remaining: %1$d</string>

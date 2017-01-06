@@ -9,13 +9,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/new_status_hint"
-        android:maxLength="@integer/STATUS_CHARACTER_LIMIT"/>
+        android:maxLength="@integer/STATUS_CHARACTER_LIMIT"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"/>
     <TextView
         android:id="@+id/add_status_tv_char_limit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="end"
-        android:paddingBottom="3dp"/>
+        android:layout_marginRight="10dp"/>
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"

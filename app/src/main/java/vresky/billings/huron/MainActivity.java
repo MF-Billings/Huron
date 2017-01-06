@@ -58,7 +58,9 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = MainActivity.class.getSimpleName();
 
 //    private ArrayList<Contact>
+    // check existing user id
 
+    // MAP FIELDS
     private GoogleMap mMap;
 
     // A default location (Sydney, Australia) and default zoom to use when location permission is

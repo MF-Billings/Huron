@@ -39,7 +39,9 @@
             android:name=".ManageContactsActivity"
             android:screenOrientation="portrait"/>
         <activity
-            android:name=".ContactsActivity"
+            android:name=".AddContactActivity"
+            android:label="@string/add_contact"
+            android:theme="@android:style/Theme.Holo.Light.Dialog"
             android:screenOrientation="portrait"/>
         <activity
             android:name=".EditContactActivity"

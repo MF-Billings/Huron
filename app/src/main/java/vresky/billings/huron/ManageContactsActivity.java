@@ -69,6 +69,8 @@ public class ManageContactsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // waiting on database interface
+                Intent intent = new Intent(ManageContactsActivity.this, AddContactActivity.class);
+                startActivityForResult(intent, ADD_CONTACT_REQUEST);
             }
         });
     }

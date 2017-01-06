@@ -46,6 +46,12 @@ public class RegistrationActivity extends Activity {
             public void onClick(View v) {
                 String userName = etUsername.getText().toString();
                 Toast.makeText(RegistrationActivity.this, "register btn", Toast.LENGTH_SHORT).show();
+
+                if (!userName.isEmpty()) {
+
+                } else {
+                    Toast.makeText(RegistrationActivity.this, "Cannot leave an empty username", Toast.LENGTH_SHORT).show();
+                }
                 finish();
             }
         });
