@@ -1,216 +1,108 @@
 package vresky.billings.huron;
 
-import android.util.Log;
+import java.io.Serializable;
 
-import java.io.BufferedInputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
+// TODO comments are out of date
+public class DatabaseInterface implements Serializable {
 
-class DatabaseInterface {
+    private int userID;
+    private String userName;
 
-    private String userName;	    // userName will have to be stored somewhere on the phone once set
-    private int userPrimaryKey;	    // primary key associated with user in database, should also be stored on the phone for fast db lookup
-
-    private static final String TAG = "Http Connection";
-
+    DatabaseAsyncTask dbat;
 
     // default constructor if no userName is set
     public DatabaseInterface() {
 
     }
 
+    // constructor that sets the userID
+    public DatabaseInterface(int userID) {
+        this.userID = userID;
+    }
+
     // use once the user has added himself to the database
-    public DatabaseInterface(String userName, String password) {
-        this.userName = userName;
+    public DatabaseInterface(int userID, String password) {
+        this.userID = userID;
         //authUser(userName, password);
     }
 
-    // this function will return an arraylist of InfoBundles
-    public ArrayList<InfoBundle> getContactLocationsAndStatuses() {
-        InputStream inputStream = null;
-        HttpURLConnection urlConnection = null;
-        boolean result = false;
-        ArrayList<InfoBundle> array = new ArrayList<>();
-
+    /**
+     * adds a user to the database, returns user id on success and false on failure
+     */
+    public String addUser(String userName, String password) {
+        dbat = new DatabaseAsyncTask();
         try {
-            String address = "http://pv.gotdns.ch/android/getcontactlocationsandstatuses.php?userprimarykey=" + userPrimaryKey;
-            URL url = new URL(address);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            int statusCode = urlConnection.getResponseCode();
-            if (statusCode ==  200) {
-                inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                String response = inputStream.toString();
-
-                // to do: parse response as json and populate array
-
-            }
-            urlConnection.disconnect();
-
+            String url = "http://pv.gotdns.ch/android/adduser.php?username=" + userName + "&password=" + password;
+            return dbat.execute(url).get();
         } catch (Exception e) {
-            Log.d(TAG, e.getLocalizedMessage());
+            e.printStackTrace();
         }
-        return array;   // returns empty array for now
+        return "error";
     }
 
-    // sets user location and status
-    public boolean setUserLocationAndStatus(Double latitude, Double longitude, String status) {	//and timestamp as long int
-        InputStream inputStream = null;
-        HttpURLConnection urlConnection = null;
-        boolean result = false;
-
+    public String removeUser(int userID) {
+        dbat = new DatabaseAsyncTask();
         try {
-
-            String address = "http://pv.gotdns.ch/android/setuserlocationandstatus.php?userprimarykey=" + userPrimaryKey
-                    + "&latitude=" + latitude
-                    + "&longitude=" + longitude
-                    + "&status=" + status;
-            URL url = new URL(address);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            int statusCode = urlConnection.getResponseCode();
-            if (statusCode ==  200) {
-                inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                String response = inputStream.toString();
-                result = true;
-            }
-            else {
-                result = false;
-            }
-            urlConnection.disconnect();
-
+            String url = "http://pv.gotdns.ch/android/removeuser.php?userid=" + userID;
+            return dbat.execute(url).get();
         } catch (Exception e) {
-            Log.d(TAG, e.getLocalizedMessage());
+            e.printStackTrace();
         }
-        return result;
+        return "error";
     }
 
-//    // returns list of InfoBundles -> unnecessary, you can get contacts list through getContactLocationsAndStatuses()
-//    public ArrayList<InfoBundle> getContactsList() {
-//
-//    }
-
-    // adds a user's contact to the database
-    public boolean addContact(String contactName) {
-        InputStream inputStream = null;
-        HttpURLConnection urlConnection = null;
-        boolean result = false;
-
+    public String addContact(int userID, int contactID) {
+        dbat = new DatabaseAsyncTask();
         try {
-
-            String address = "http://pv.gotdns.ch/android/addcontact.php?userprimarykey=" + userPrimaryKey + "&contactname=" + contactName;
-            URL url = new URL(address);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            int statusCode = urlConnection.getResponseCode();
-            if (statusCode ==  200) {
-                inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                String response = inputStream.toString();
-                result = true;
-            }
-            else {
-                result = false;
-            }
-            urlConnection.disconnect();
-
+            String url = "http://pv.gotdns.ch/android/addcontact.php?userid=" + userID + "&contactid=" + contactID;
+            return dbat.execute(url).get();
         } catch (Exception e) {
-            Log.d(TAG, e.getLocalizedMessage());
+            e.printStackTrace();
         }
-        return result;
+        return "error";
     }
 
-    // removes a user's contact from the database
-    public boolean removeContact(String contactName) {
-        InputStream inputStream = null;
-        HttpURLConnection urlConnection = null;
-        boolean result = false;
-
+    public String removeContact(int userID, int contactID) {
+        dbat = new DatabaseAsyncTask();
         try {
-
-            String address = "http://pv.gotdns.ch/android/removecontact.php?userprimarykey=" + userPrimaryKey + "&contactname=" + contactName;
-            URL url = new URL(address);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            int statusCode = urlConnection.getResponseCode();
-            if (statusCode ==  200) {
-                inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                String response = inputStream.toString();
-                result = true;
-            }
-            else {
-                result = false;
-            }
-            urlConnection.disconnect();
-
+            String url = "http://pv.gotdns.ch/android/removecontact.php?userid=" + userID + "&contactid=" + contactID;
+            return dbat.execute(url).get();
         } catch (Exception e) {
-            Log.d(TAG, e.getLocalizedMessage());
+            e.printStackTrace();
         }
-        return result;
+        return "error";
     }
 
-    // adds a user to the database, returns true on success and false on failure
-    public boolean addUser(String userName, String password) {
-        InputStream inputStream = null;
-        HttpURLConnection urlConnection = null;
-        boolean result = false;
-
+    public String setUserInfo(int userID, double latitude, double longitude, long timestamp, String status) {
+        dbat = new DatabaseAsyncTask();
         try {
-
-            String address = "http://pv.gotdns.ch/android/adduser.php?username=" + userName + "&password=" + password;
-            URL url = new URL(address);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            int statusCode = urlConnection.getResponseCode();
-            if (statusCode ==  200) {
-                inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                String response = inputStream.toString();
-                result = true;
-            }
-            else {
-                result = false;
-            }
-            urlConnection.disconnect();
-
+            String url = "http://pv.gotdns.ch/android/setuserinfo.php?userid=" + userID +
+                    "&latitude=" + latitude +
+                    "&longitude=" + longitude +
+                    "&timestamp=" + timestamp +
+                    "&status=" + status;
+            return dbat.execute(url).get();
         } catch (Exception e) {
-            Log.d(TAG, e.getLocalizedMessage());
+            e.printStackTrace();
         }
-        return result;
+        return "error";
     }
 
-    // removes user and all associated data from the database
-    public boolean removeUser() {
-        InputStream inputStream = null;
-        HttpURLConnection urlConnection = null;
-        boolean result = false;
-
+    public String getUserInfo(int userID) {
+        dbat = new DatabaseAsyncTask();
         try {
-
-            String address = "http://pv.gotdns.ch/android/removeuser.php?userprimarykey=" + userPrimaryKey;
-            URL url = new URL(address);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            int statusCode = urlConnection.getResponseCode();
-            if (statusCode ==  200) {
-                inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                String response = inputStream.toString();
-                result = true;
-            }
-            else {
-                result = false;
-            }
-            urlConnection.disconnect();
-
+            String url = "http://pv.gotdns.ch/android/getcontactinfo.php?userid=" + userID;
+            return dbat.execute(url).get();
         } catch (Exception e) {
-            Log.d(TAG, e.getLocalizedMessage());
+            e.printStackTrace();
         }
-        return result;
-    }
-
-    // authenticates the user
-    boolean authUser(String userName, String password) {
-        return false;
+/*
+        try {
+            this.wait(10000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+*/
+        return "error";
     }
 }
-

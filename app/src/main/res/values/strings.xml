@@ -46,6 +46,7 @@
     <!--KEYS-->
 
     <string name="SHARED_PREFS_NAME">vresky.billings.huron</string>
+    <string name="KEY_DB_INTERFACE_OBJ">db</string>
     <!--used when Contact class implemented Parcelable. Should remove-->
     <string name="KEY_GET_INTENT_CLASS_NAME">getIntentClassName</string>
     <string name="KEY_PARCELABLE_CONTACT">contact</string>

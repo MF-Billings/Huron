@@ -12,6 +12,7 @@ import android.widget.EditText;
  * Created by Matt on 30/12/2016.
  * Handle editing of contact data for existing contacts
  */
+// TODO possibly delete; no server side support
 public class EditContactActivity extends AppCompatActivity {
 
     Button btnCancel;
@@ -35,8 +36,8 @@ public class EditContactActivity extends AppCompatActivity {
             contact = (Contact) obj;
         }
 
-        if (contact != null && contact.getFirstName() != null) {
-            etFirstName.setText(contact.getFirstName());
+        if (contact != null && contact.getName() != null) {
+            etFirstName.setText(contact.getName());
         }
 
         final Intent RETURN_INTENT = new Intent();
@@ -58,7 +59,7 @@ public class EditContactActivity extends AppCompatActivity {
                 if (!firstName.isEmpty()) {
                     // create a new contact that reflects user edits
                     Contact modifiedContact = new Contact();
-                    modifiedContact.setFirstName(firstName);
+                    modifiedContact.setName(firstName);
                     // attach contact to the intent being returned
                     RETURN_INTENT.putExtra(getResources().getString(R.string.KEY_PARCELABLE_CONTACT), modifiedContact);
                     int itemPosition = getIntent().getIntExtra(

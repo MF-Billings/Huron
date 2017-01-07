@@ -10,16 +10,12 @@ public class User implements Serializable {
     public final static int USER_ID_NOT_FOUND = -1;
 
     private int userId = USER_ID_NOT_FOUND;
-    private boolean userIsRegistered = false;
+    private boolean userIsRegistered = false;           // if this is false then the data is worthless
     private String status;
     private String username;
 
     public boolean isRegistered() {
         return this.userIsRegistered;
-    }
-
-    public void setUserIsRegistered(boolean userIsRegistered) {
-        this.userIsRegistered = userIsRegistered;
     }
 
     public int getUserId() {
@@ -28,6 +24,7 @@ public class User implements Serializable {
 
     public void setUserId(int userId) {
         this.userId = userId;
+        userIsRegistered = true;
     }
 
     public String getStatus() {

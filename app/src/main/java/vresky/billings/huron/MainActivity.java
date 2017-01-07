@@ -37,6 +37,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 /**
  * Created by Matt on 14/12/2016
  * polls for location updates while app is running in the foreground
+ * doesn't track when phone is locked (app in foreground or not)
  */
 /* NOTE Because of the inability of the emulator to regularly update the location there are certain
     issues that occur when running the app on an emulator
@@ -48,7 +49,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
     - toggling the tracking using the action button in the toolbar removes the marker but does not
     replace it when run in the emulator
  */
-// TODO doesn't track when phone is locked (app in foreground or not) OR get marker to show timestamp
+// TODO add list for user's contacts
+// TODO what's a user's status when they first log in?
 public class MainActivity extends AppCompatActivity implements
         OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -57,11 +59,11 @@ public class MainActivity extends AppCompatActivity implements
 
     private static final String TAG = MainActivity.class.getSimpleName();
     public static boolean trackingIsEnabled = true;          // true if the user's location is currently being recorded
-    public User user;
 
+    private User user;       // the app user
 //    private ArrayList<Contact>
     SharedPreferences prefs;
-    DatabaseInterface db;
+    private DatabaseInterface db;
 
     // MAP FIELDS
     private GoogleMap mMap;
@@ -102,20 +104,19 @@ public class MainActivity extends AppCompatActivity implements
         buildGoogleApiClient();
         mGoogleApiClient.connect();
         createLocationRequest();
-        // get user id if one exists
+
+        // determine if user is registered
         user = new User();
+        // get user id if one exists
         prefs = getSharedPreferences(getResources().getString(R.string.SHARED_PREFS_NAME), MODE_PRIVATE);
-        user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
-        user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
-
-        if (user.getUserId() != User.USER_ID_NOT_FOUND) {
-            user.setUserIsRegistered(true);
-        }
-
-        if (user.isRegistered()) {
-            db = new DatabaseInterface(user.getUsername(), "not needed");
-        } else {
+        int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1); //useridnotfound
+        // user has already registered
+        if (userId == User.USER_ID_NOT_FOUND) {
             db = new DatabaseInterface();
+        } else {
+            user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
+            user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
+            db = new DatabaseInterface(user.getUserId(), "GNDN");
         }
     }
 
@@ -224,8 +225,16 @@ public class MainActivity extends AppCompatActivity implements
             mCurrentLocation = location;
             // update location marker for user
             if (mMap != null) {
-                // server code
-                db.setUserLocationAndStatus(location.getLatitude(), location.getLongitude(), "statusGoesHere");
+                // update server info given proper conditions
+                // trackingIsEnabled is always true??
+                if (trackingIsEnabled && user.isRegistered()) {
+                    String result = db.setUserInfo(user.getUserId(), location.getLatitude(), location.getLongitude(),
+                            location.getTime(), user.getStatus());
+                    // defined by db interface class
+                    if (result.equals("error")) {
+                        Log.e(TAG, "setUserInfo failed at onLocationChanged");
+                    }
+                }
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude + "\n"
                         + "Time: " + mCurrentLocation.getTime());
@@ -376,6 +385,8 @@ public class MainActivity extends AppCompatActivity implements
                 // only allow registration if user doesn't have a user id
                 if (!user.isRegistered()) {
                     intent = new Intent(this, RegistrationActivity.class);
+                    intent.putExtra(getResources().getString(R.string.KEY_USER), user);
+                    intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
                     startActivity(intent);
                 }
                 break;

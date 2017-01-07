@@ -26,6 +26,7 @@ import java.util.List;
 
 /**
  * Created by Matt on 21/12/2016.
+ * updates status
  */
 
 public class UpdateStatusActivity extends AppCompatActivity {
@@ -46,8 +47,14 @@ public class UpdateStatusActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_status);
 
-        statusList = new ArrayList<String>();
-        user = (User)getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
+        statusList = new ArrayList<>();
+        Object obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
+        if (obj instanceof User) {
+            user = (User)obj;
+        } else {
+            StackTraceElement[] stackTraceElement = Thread.currentThread().getStackTrace();
+            Log.e(TAG, "Cannot cast object to user in " + stackTraceElement[0]);
+        }
 
         lvStatus = (ListView) findViewById(R.id.lv_statuses);
         Button btnAddStatus = (Button) findViewById(R.id.btn_add_status);
@@ -187,7 +194,7 @@ public class UpdateStatusActivity extends AppCompatActivity {
                     statusAdapter.notifyDataSetChanged();
                 }
             } else if (resultCode == RESULT_CANCELED) {
-
+                Log.d(TAG, "cancelled");
             }
         }
     }
