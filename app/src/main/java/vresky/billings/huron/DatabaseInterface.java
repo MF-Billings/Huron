@@ -35,7 +35,6 @@ class DatabaseInterface {
         ArrayList<InfoBundle> array = new ArrayList<>();
 
         try {
-
             String address = "http://pv.gotdns.ch/android/getcontactlocationsandstatuses.php?userprimarykey=" + userPrimaryKey;
             URL url = new URL(address);
             urlConnection = (HttpURLConnection) url.openConnection();

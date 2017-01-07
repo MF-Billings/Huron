@@ -1,10 +1,13 @@
 package vresky.billings.huron;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -27,18 +30,25 @@ import java.util.List;
 
 public class UpdateStatusActivity extends AppCompatActivity {
 
+    private final String TAG = this.getClass().getSimpleName();
+    private static int selected_status_color = Color.CYAN;
     private static final int ADD_STATUS_REQUEST = 1;
 
     private List<String> statusList;
     private StatusAdapter statusAdapter;            // easily call adapter notify functions
     private ListView lvStatus;
+    private View selectedListItem;
+    private User user;
+    private int selectedListItemIndex;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_status);
 
-        statusList = new ArrayList<>();
+        statusList = new ArrayList<String>();
+        user = (User)getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
+
         lvStatus = (ListView) findViewById(R.id.lv_statuses);
         Button btnAddStatus = (Button) findViewById(R.id.btn_add_status);
 
@@ -53,6 +63,29 @@ public class UpdateStatusActivity extends AppCompatActivity {
 
         // LISTENERS
 
+        lvStatus.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                view.findViewById(R.id.contact_rv_btn_delete);
+                // header offsets position by 1
+                int truePosition = position - 1;
+                // turn off highlighting from previously selected item and enable selection on new item
+                if (selectedListItem == null) {
+                    selectedListItem = view;
+                }
+                selectedListItem.setBackgroundColor(Color.TRANSPARENT);
+                selectedListItem = view;
+                selectedListItemIndex = truePosition;
+                selectedListItem.setBackgroundColor(selected_status_color);
+                if (user != null) {
+                    user.setStatus(statusList.get(truePosition));
+                    Log.d(TAG, user.getStatus());
+                } else {
+                    Log.d(TAG, "Cannot status " + statusList.get(truePosition) + " to null user");
+                }
+            }
+        });
+
         btnAddStatus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -60,6 +93,8 @@ public class UpdateStatusActivity extends AppCompatActivity {
                 startActivityForResult(intent, ADD_STATUS_REQUEST);
             }
         });
+
+        //
 
         // read status list
         FileReader reader;
@@ -138,11 +173,26 @@ public class UpdateStatusActivity extends AppCompatActivity {
 
                 if (itemPosition != -1) {
                     statusList.set(itemPosition, data.getStringExtra(key));
+                    // update user's status if the edited status is their current status
+                    if (itemPosition == selectedListItemIndex) {
+                        // DEBUG
+                        if (user != null) {
+                            user.setStatus(statusList.get(itemPosition));
+                            Log.d(TAG, user.getStatus());
+                        } else {
+                            Log.d(TAG, "User status would now be " + statusList.get(itemPosition)
+                                + " if user wasn't null");
+                        }
+                    }
                     statusAdapter.notifyDataSetChanged();
                 }
             } else if (resultCode == RESULT_CANCELED) {
 
             }
         }
+    }
+
+    public static int getStatusColor() {
+        return selected_status_color;
     }
 }

@@ -55,6 +55,10 @@
     <!--item position within the list-->
     <string name="KEY_ITEM_POSITION">item position</string>
     <string name="KEY_CONTACT_STATUS">status</string>
+    <string name="KEY_USER">user</string>
+    <!--the user's unique id which will be used by other users to add them as a contact-->
+    <string name="KEY_USER_ID">user id</string>
+    <string name="KEY_USERNAME">username</string>
 
     <!--TAGS-->
     <string name="APP_TAG">Huron</string>

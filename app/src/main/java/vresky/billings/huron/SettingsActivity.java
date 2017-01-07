@@ -8,24 +8,23 @@ import android.widget.Toast;
 
 /**
  * Created by Matt on 04/01/2017.
- * Includes settings and preferences the user may wish to modify
+ * Includes widget to return user id
  */
 // TODO display actual userId
 public class SettingsActivity extends AppCompatActivity {
 
-    static int zoom_level;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+        user = (User)getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
+
         Button btnCancel = (Button) findViewById(R.id.btn_cancel);
         Button btnSave = (Button) findViewById(R.id.btn_save);
         Button btnGetId = (Button) findViewById(R.id.btn_get_user_id);
-//        Spinner zoomSpinner = (Spinner) findViewById(R.id.settings_spnr_zoom_level);
-
-//        ArrayAdapter<CharSequence> zoomAdapter = ArrayAdapter.createFromResource(this, R.array.settings_zoom_level, android.R.layout.simple_spinner_item);
 
         // LISTENERS
 
@@ -47,7 +46,7 @@ public class SettingsActivity extends AppCompatActivity {
         btnGetId.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String userId = "user id goes here";
+                String userId = String.valueOf(user.getUserId());
                 Toast.makeText(SettingsActivity.this, userId, Toast.LENGTH_SHORT).show();
             }
         });

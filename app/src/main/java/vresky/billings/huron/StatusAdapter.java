@@ -2,13 +2,17 @@ package vresky.billings.huron;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -18,6 +22,7 @@ import java.util.List;
  */
 public class StatusAdapter extends BaseAdapter {
 
+    private final String TAG = this.getClass().toString();
     private Context context;
     private List<String> statusList;
 
@@ -59,7 +64,7 @@ public class StatusAdapter extends BaseAdapter {
         Button btnEdit = (Button) view.findViewById(R.id.contact_rv_btn_edit);
         Button btnDelete = (Button) view.findViewById(R.id.contact_rv_btn_delete);
 
-        tvString.setText(statusList.get(position).toString());
+        tvString.setText(statusList.get(position));
 
         // LISTENERS
 
@@ -83,8 +88,17 @@ public class StatusAdapter extends BaseAdapter {
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                statusList.remove(position);
-                notifyDataSetChanged();
+                // delete if chosen status isn't the active user status
+                View containerLayout = ((LinearLayout)v.getParent());
+                Drawable drawable = containerLayout.getBackground();
+                ColorDrawable bg = (ColorDrawable)drawable;
+
+                if (bg.getColor() == UpdateStatusActivity.getStatusColor()) {
+                    Toast.makeText(context, "Cannot delete active status", Toast.LENGTH_SHORT).show();
+                } else {
+                    statusList.remove(position);
+                    notifyDataSetChanged();
+                }
             }
         });
         return view;

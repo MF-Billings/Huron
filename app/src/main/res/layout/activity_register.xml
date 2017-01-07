@@ -42,6 +42,13 @@
             android:text="@string/cancel_literal"
             android:layout_weight="1"
             style="?android:attr/buttonBarButtonStyle"/>
+        <!--<Button-->
+            <!--android:id="@+id/btn_login"-->
+            <!--android:layout_width="0dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="Login"-->
+            <!--android:layout_weight="1"-->
+            <!--style="?android:attr/buttonBarButtonStyle"/>-->
         <Button
             android:id="@+id/btn_register"
             android:layout_width="0dp"

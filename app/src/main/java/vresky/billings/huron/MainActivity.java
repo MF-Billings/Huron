@@ -3,6 +3,7 @@ package vresky.billings.huron;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -54,11 +55,13 @@ public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
-    public static boolean trackingIsEnabled = true;          // true if the user's location is currently being recorded
     private static final String TAG = MainActivity.class.getSimpleName();
+    public static boolean trackingIsEnabled = true;          // true if the user's location is currently being recorded
+    public User user;
 
 //    private ArrayList<Contact>
-    // check existing user id
+    SharedPreferences prefs;
+    DatabaseInterface db;
 
     // MAP FIELDS
     private GoogleMap mMap;
@@ -99,6 +102,21 @@ public class MainActivity extends AppCompatActivity implements
         buildGoogleApiClient();
         mGoogleApiClient.connect();
         createLocationRequest();
+        // get user id if one exists
+        user = new User();
+        prefs = getSharedPreferences(getResources().getString(R.string.SHARED_PREFS_NAME), MODE_PRIVATE);
+        user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
+        user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
+
+        if (user.getUserId() != User.USER_ID_NOT_FOUND) {
+            user.setUserIsRegistered(true);
+        }
+
+        if (user.isRegistered()) {
+            db = new DatabaseInterface(user.getUsername(), "not needed");
+        } else {
+            db = new DatabaseInterface();
+        }
     }
 
     // for debugging purposes
@@ -127,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onDestroy();
         Log.d(TAG, "After super.onDestroy");
     }
+
     // MAP  ----------------------------------------------------------------------------------------
 
     // called when getMapAsync returns; map is ready to be used
@@ -205,6 +224,8 @@ public class MainActivity extends AppCompatActivity implements
             mCurrentLocation = location;
             // update location marker for user
             if (mMap != null) {
+                // server code
+                db.setUserLocationAndStatus(location.getLatitude(), location.getLongitude(), "statusGoesHere");
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude + "\n"
                         + "Time: " + mCurrentLocation.getTime());
@@ -314,6 +335,12 @@ public class MainActivity extends AppCompatActivity implements
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
+        // hide registration option if an existing user id is stored
+        if (user.isRegistered()) {
+            MenuItem item = menu.findItem(R.id.action_register);
+            item.setVisible(false);
+            invalidateOptionsMenu();
+        }
         return true;
     }
 
@@ -342,14 +369,19 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case R.id.action_update_status:
                 intent = new Intent(this, UpdateStatusActivity.class);
+                intent.putExtra(getResources().getString(R.string.KEY_USER), user);
                 startActivity(intent);
                 break;
             case R.id.action_register:
-                intent = new Intent(this, RegistrationActivity.class);
-                startActivity(intent);
+                // only allow registration if user doesn't have a user id
+                if (!user.isRegistered()) {
+                    intent = new Intent(this, RegistrationActivity.class);
+                    startActivity(intent);
+                }
                 break;
             case R.id.action_settings:
                 intent = new Intent(this, SettingsActivity.class);
+                intent.putExtra(getResources().getString(R.string.KEY_USER), user);
                 startActivity(intent);
                 break;
             default:
