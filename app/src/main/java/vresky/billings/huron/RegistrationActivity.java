@@ -1,6 +1,8 @@
 package vresky.billings.huron;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +18,7 @@ import android.widget.Toast;
 public class RegistrationActivity extends Activity {
 
     public final String TAG = this.getClass().getSimpleName();
+    boolean registrationIsSuccessful = false;
     User user;
     DatabaseInterface db;
 
@@ -56,6 +59,7 @@ public class RegistrationActivity extends Activity {
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                setResult(RESULT_CANCELED);
                 finish();
             }
         });
@@ -66,16 +70,33 @@ public class RegistrationActivity extends Activity {
                 String userName = etUsername.getText().toString();
                 Toast.makeText(RegistrationActivity.this, "register btn", Toast.LENGTH_SHORT).show();
 
+                // add user to database if the input is valid
                 if (!userName.isEmpty()) {
-                    String result = db.addUser(userName, "");
+                    String result = db.addUser(userName, "GNDN");
                     if (result.equals("error")) {
                         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
                         Log.e(TAG, "User could not be added to database" + stackTraceElements.toString());
                     } else {
+                        // DEBUG when commented
                         user.setUserId(Integer.valueOf(result));
+                        // store user data
+                        SharedPreferences prefs = getSharedPreferences(
+                                getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
+                        SharedPreferences.Editor prefsEditor = prefs.edit();
+                        prefsEditor.putInt(getResources().getString(R.string.KEY_USER_ID), user.getUserId());
+                        prefsEditor.putString(getResources().getString(R.string.KEY_USERNAME), userName);
+                        prefsEditor.apply();
+                        registrationIsSuccessful = true;
                     }
                 } else {
                     Toast.makeText(RegistrationActivity.this, "Cannot leave an empty username", Toast.LENGTH_SHORT).show();
+                }
+
+                if (registrationIsSuccessful) {
+                    // return user object
+                    Intent intent = new Intent();
+                    intent.putExtra(getResources().getString(R.string.KEY_USER), user);
+                    setResult(RESULT_OK, intent);
                 }
                 finish();
             }

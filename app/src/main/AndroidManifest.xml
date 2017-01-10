@@ -44,9 +44,6 @@
             android:theme="@android:style/Theme.Holo.Light.Dialog"
             android:screenOrientation="portrait"/>
         <activity
-            android:name=".EditContactActivity"
-            android:screenOrientation="portrait"/>
-        <activity
             android:name=".UpdateStatusActivity"
             android:screenOrientation="portrait"/>
         <!--theme displays activity as a dialog, label changes title used for dialog-->

@@ -13,6 +13,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -49,6 +50,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
     - toggling the tracking using the action button in the toolbar removes the marker but does not
     replace it when run in the emulator
  */
+// TODO hide registration feature after user registers for the 1st time
+// TODO system breaks if user doesn't have a status when they register
 // TODO add list for user's contacts
 // TODO what's a user's status when they first log in?
 public class MainActivity extends AppCompatActivity implements
@@ -60,10 +63,13 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = MainActivity.class.getSimpleName();
     public static boolean trackingIsEnabled = true;          // true if the user's location is currently being recorded
 
+    private final int REGISTER_REQUEST = 1;
+
     private User user;       // the app user
 //    private ArrayList<Contact>
     SharedPreferences prefs;
     private DatabaseInterface db;
+    private Menu optionsMenu;           // allow access of toolbar menu outside toolbar-specific methods
 
     // MAP FIELDS
     private GoogleMap mMap;
@@ -108,14 +114,19 @@ public class MainActivity extends AppCompatActivity implements
         // determine if user is registered
         user = new User();
         // get user id if one exists
-        prefs = getSharedPreferences(getResources().getString(R.string.SHARED_PREFS_NAME), MODE_PRIVATE);
-        int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1); //useridnotfound
+        prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
+        int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), User.USER_ID_NOT_FOUND);
         // user has already registered
+        // it matters what constructor you call
         if (userId == User.USER_ID_NOT_FOUND) {
             db = new DatabaseInterface();
         } else {
+            // DEBUG
             user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
             user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
+            // set status to empty string - DB can't handle null
+            // TODO commit status
+            user.setStatus(""); // set if null?
             db = new DatabaseInterface(user.getUserId(), "GNDN");
         }
     }
@@ -164,6 +175,18 @@ public class MainActivity extends AppCompatActivity implements
             if (mLocationPermissionGranted) {
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+                // send location info on initialization to server
+                if (user.isRegistered()) {
+                    db.setUserInfo(user.getUserId(), latLng.latitude, latLng.longitude, mCurrentLocation.getTime(), "");
+                }
+
+                // DEBUG retrieve info
+//                String result = db.getUserInfo(user.getUserId());
+//                JSONtoArrayList JSONparser = new JSONtoArrayList();
+//                ArrayList<InfoBundle> contactBundle = JSONparser.convert(result);
+                InfoBundle contactBundle = new InfoBundle(-1, "testboi", mCurrentLocation, "status");
+                Log.d(TAG, "Info Bundle:\n" + contactBundle);   //.get(0).toString()
             }
             Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude + "\n"
                 + "Time: " + mCurrentLocation.getTime());
@@ -233,11 +256,12 @@ public class MainActivity extends AppCompatActivity implements
                     // defined by db interface class
                     if (result.equals("error")) {
                         Log.e(TAG, "setUserInfo failed at onLocationChanged");
+                    } else {
+
                     }
                 }
-                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude + "\n"
-                        + "Time: " + mCurrentLocation.getTime());
+                Log.d(TAG, "Current LatLng: " + location.getLatitude() + ", " + location.getLongitude() + "\n"
+                        + "Time: " + DateFormat.format("dd-MM-yyyy", mCurrentLocation.getTime()));
             }
         }
     }
@@ -338,10 +362,32 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REGISTER_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                // successful registration
+                // store user
+                Object obj = data.getSerializableExtra(getResources().getString(R.string.KEY_USER));
+                if (obj instanceof User) {
+                    user = (User)obj;
+                }
+                // remove registration action
+                // DOESN'T WORK
+                if (optionsMenu != null) {
+                    MenuItem item = optionsMenu.findItem(R.id.action_register);
+                    item.setVisible(false);
+                    invalidateOptionsMenu();
+                }
+            }
+        }
+    }
+
     // MENU ----------------------------------------------------------------------------------------
 
     // display toolbar
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(final Menu menu) {
+        optionsMenu = menu;
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
         // hide registration option if an existing user id is stored
@@ -360,6 +406,8 @@ public class MainActivity extends AppCompatActivity implements
         switch (item.getItemId()) {
             case R.id.action_manage_contacts:
                 intent = new Intent(this, ManageContactsActivity.class);
+                intent.putExtra(getResources().getString(R.string.KEY_USER), user);
+                intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
                 startActivity(intent);
                 break;
             // the eye button
@@ -378,7 +426,9 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case R.id.action_update_status:
                 intent = new Intent(this, UpdateStatusActivity.class);
-                intent.putExtra(getResources().getString(R.string.KEY_USER), user);
+                if (user.isRegistered()) {
+                    intent.putExtra(getResources().getString(R.string.KEY_USER), user);
+                }
                 startActivity(intent);
                 break;
             case R.id.action_register:
@@ -387,7 +437,7 @@ public class MainActivity extends AppCompatActivity implements
                     intent = new Intent(this, RegistrationActivity.class);
                     intent.putExtra(getResources().getString(R.string.KEY_USER), user);
                     intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
-                    startActivity(intent);
+                    startActivityForResult(intent, REGISTER_REQUEST);
                 }
                 break;
             case R.id.action_settings:

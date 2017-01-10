@@ -28,7 +28,7 @@ import java.util.List;
  * Created by Matt on 21/12/2016.
  * updates status
  */
-
+// TODO check if status indicator saves
 public class UpdateStatusActivity extends AppCompatActivity {
 
     private final String TAG = this.getClass().getSimpleName();

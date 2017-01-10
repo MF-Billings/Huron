@@ -2,15 +2,23 @@ package vresky.billings.huron;
 
 import java.io.Serializable;
 
-// TODO comments are out of date
+/**
+ * Created by Patrick on 12/31/2016
+ * Database interface class.
+ * Uses DatabaseAsyncTask to push and pull data from web service.
+ * Web service built by Patrick.
+ *
+ */
+// TODO singleton?
 public class DatabaseInterface implements Serializable {
 
     private int userID;
     private String userName;
 
     DatabaseAsyncTask dbat;
-
-    // default constructor if no userName is set
+    /**
+     * default constructor if no userName is set
+     */
     public DatabaseInterface() {
 
     }
@@ -20,7 +28,11 @@ public class DatabaseInterface implements Serializable {
         this.userID = userID;
     }
 
-    // use once the user has added himself to the database
+    /**
+     * use once the user has added himself to the database (this will be implemented soon)
+     * @param userID
+     * @param password
+     */
     public DatabaseInterface(int userID, String password) {
         this.userID = userID;
         //authUser(userName, password);
@@ -28,6 +40,9 @@ public class DatabaseInterface implements Serializable {
 
     /**
      * adds a user to the database, returns user id on success and false on failure
+     * @param userName
+     * @param password
+     * @return "success" or "error" depending upon result
      */
     public String addUser(String userName, String password) {
         dbat = new DatabaseAsyncTask();
@@ -40,6 +55,11 @@ public class DatabaseInterface implements Serializable {
         return "error";
     }
 
+    /**
+     *
+     * @param userID
+     * @return "success" or "error" depending upon result
+     */
     public String removeUser(int userID) {
         dbat = new DatabaseAsyncTask();
         try {
@@ -51,6 +71,12 @@ public class DatabaseInterface implements Serializable {
         return "error";
     }
 
+    /**
+     *
+     * @param userID
+     * @param contactID
+     * @return "success" or "error" depending upon result
+     */
     public String addContact(int userID, int contactID) {
         dbat = new DatabaseAsyncTask();
         try {
@@ -62,6 +88,12 @@ public class DatabaseInterface implements Serializable {
         return "error";
     }
 
+    /**
+     *
+     * @param userID
+     * @param contactID
+     * @return "success" or "error" depending upon result
+     */
     public String removeContact(int userID, int contactID) {
         dbat = new DatabaseAsyncTask();
         try {
@@ -73,6 +105,15 @@ public class DatabaseInterface implements Serializable {
         return "error";
     }
 
+    /**
+     *
+     * @param userID
+     * @param latitude
+     * @param longitude
+     * @param timestamp
+     * @param status
+     * @return "success" or "error"
+     */
     public String setUserInfo(int userID, double latitude, double longitude, long timestamp, String status) {
         dbat = new DatabaseAsyncTask();
         try {
@@ -88,7 +129,13 @@ public class DatabaseInterface implements Serializable {
         return "error";
     }
 
-    public String getUserInfo(int userID) {
+
+    /**
+     * returns JSON encoded contact information
+     * @param userID
+     * @return "null" if result set from database is empty, "error" on error
+     */
+    public String getContactsInfo(int userID) {
         dbat = new DatabaseAsyncTask();
         try {
             String url = "http://pv.gotdns.ch/android/getcontactinfo.php?userid=" + userID;

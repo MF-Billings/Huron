@@ -1,6 +1,7 @@
 package vresky.billings.huron;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -29,11 +30,14 @@ import java.util.List;
 // TODO implement add contact functionality
 public class ManageContactsActivity extends AppCompatActivity {
 
+    static final String TAG = ManageContactsActivity.class.getSimpleName();
     static final int ADD_CONTACT_REQUEST = 1;
 
     final List<Contact> contacts = new ArrayList<>();
+    DatabaseInterface db;
+    User user;
     ListView lvContacts;
-    ContactsAdapter contactsArrayAdapter;
+    ContactsAdapter contactsArrayAdapter; SharedPreferences prefs;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,16 +48,22 @@ public class ManageContactsActivity extends AppCompatActivity {
         Button btnAddContact = (Button) findViewById(R.id.btn_add_contact);
 
         // read in list of contacts
-        restoreContacts();
-
-        if (contacts.isEmpty()) {
-            // hardcode some contacts for testing
-            contacts.add(new Contact("Aaron"));
-            contacts.add(new Contact("Sam"));
-            contacts.add(new Contact("Kim"));
-
-            // convey that re-population of dummy contacts was intentional
-            Toast.makeText(ManageContactsActivity.this, "DEBUG re-populating empty contacts list with dummy values", Toast.LENGTH_SHORT).show();
+//        restoreContacts();
+        // DEBUG
+        // determine if user is registered
+        user = new User();
+        // get user id if one exists
+        prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
+        int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), User.USER_ID_NOT_FOUND);
+        // user has already registered
+        // it matters what constructor you call
+        if (userId == User.USER_ID_NOT_FOUND) {
+            db = new DatabaseInterface();
+        } else {
+            user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
+            user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
+            user.setStatus("");
+            db = new DatabaseInterface(user.getUserId(), "GNDN");
         }
 
         contactsArrayAdapter = new ContactsAdapter(this, contacts);
@@ -65,11 +75,27 @@ public class ManageContactsActivity extends AppCompatActivity {
         lvContacts.addHeaderView(contactsHeader);           // must be called before setAdapter if pre-Kitkat (Android 4.4)
         lvContacts.setAdapter(contactsArrayAdapter);
 
+        // unmarshall intent extras
+        Object obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ));
+        if (obj instanceof DatabaseInterface) {
+            db = (DatabaseInterface)obj;
+        } else {
+            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to DatabaseInterface");
+        }
+        obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
+        if (obj instanceof User) {
+            user = (User)obj;
+        } else {
+            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to User");
+        }
+
         btnAddContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // waiting on database interface
+                // add contact with the server's help
                 Intent intent = new Intent(ManageContactsActivity.this, AddContactActivity.class);
+                intent.putExtra(getResources().getString(R.string.KEY_USER), user);
+                intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
                 startActivityForResult(intent, ADD_CONTACT_REQUEST);
             }
         });
@@ -79,17 +105,24 @@ public class ManageContactsActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        saveContacts();
+//        saveContacts();
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // add existing contact (ie. on the server)
         if (requestCode == ADD_CONTACT_REQUEST) {
             if (resultCode == RESULT_OK) {
-                Contact addedContact = (Contact)data.getSerializableExtra(getResources().getString(R.string.contact_parcel_key));   // getParceableExtra
+                ArrayList<InfoBundle> contactBundle = (ArrayList)data.getSerializableExtra("contactBundle");
+//                Contact addedContact = (Contact)data.getSerializableExtra(getResources().getString(R.string.contact_parcel_key));   // getParceableExtra
+                ArrayList<Contact> contactsList = new ArrayList<>();
+                for (InfoBundle i : contactBundle) {
+                    contactsList.add(new Contact(i));
+            }
                 // update list
-                contacts.add(addedContact);
-                // update the listview to reflect the changes in the backing dataset
+//                contacts.add(addedContact);
+                contactsArrayAdapter.replace(contactsList);
+                // update the listview to reflect the changes in the backing data-set
                 /* when addHeaderView is used, the adapter is wrapped in a HeaderViewListAdapter
                  * which can't be cast to a BaseAdapter
                  */
@@ -98,16 +131,19 @@ public class ManageContactsActivity extends AppCompatActivity {
             } else if (resultCode == RESULT_CANCELED) {
                 Toast.makeText(this, "cancelled", Toast.LENGTH_SHORT).show();
             }
-        } else if (requestCode == ContactsAdapter.MODIFY_CONTACT_REQUEST) {
+        }
+        // modifies the contact's name client-side only
+        // TODO not used
+        else if (requestCode == ContactsAdapter.MODIFY_CONTACT_REQUEST) {
             if (resultCode == RESULT_OK) {
                 String itemPositionKey = getResources().getString(R.string.KEY_ITEM_POSITION);
                 int positionOfModifiedItem = data.getIntExtra(itemPositionKey, -1);
                 if (positionOfModifiedItem != -1) {
                     String contactKey = getResources().getString(R.string.KEY_PARCELABLE_CONTACT);
-                    contacts.set(positionOfModifiedItem, (Contact)data.getSerializableExtra(contactKey)); //getParcelableExtra
+                    contacts.set(positionOfModifiedItem, (Contact)data.getSerializableExtra(contactKey));
                     contactsArrayAdapter.notifyDataSetChanged();
                 } else {
-                    Log.d(getResources().getString(R.string.APP_TAG), "invalid list index supplied by EditContact activity");
+                    Log.d(TAG, "invalid list index supplied by EditContact activity");
                 }
             } else if (resultCode == RESULT_CANCELED) {
                 String toastMsg = "";

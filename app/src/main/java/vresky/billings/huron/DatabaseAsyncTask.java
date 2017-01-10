@@ -8,10 +8,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class DatabaseAsyncTask extends AsyncTask<String, Integer, String> {
+/**
+ * Created by Patrick on 20/31/2016
+ * Database async task class.
+ * Used by database interface to pull/push data to the web service.
+ * Web service built by Patrick.
+ */
+public class DatabaseAsyncTask extends AsyncTask<String, Integer, String> implements Serializable {
 
     public Integer success;     // 0 for failure, 1 for success
     public String result;
@@ -27,16 +34,12 @@ public class DatabaseAsyncTask extends AsyncTask<String, Integer, String> {
     @Override
     protected String doInBackground(String... params) {
         InputStream inputStream = null;
-
         HttpURLConnection urlConnection = null;
 
         try {
             URL url = new URL(params[0]);
-
             urlConnection = (HttpURLConnection) url.openConnection();
-
             urlConnection.setRequestMethod("GET");
-
             int statusCode = urlConnection.getResponseCode();
 
             //Log.d(TAG, "Before 200");
@@ -54,7 +57,6 @@ public class DatabaseAsyncTask extends AsyncTask<String, Integer, String> {
                     e.printStackTrace();
                 }
 
-
                 //parseResult(response);
 
                 success = 1; // Successful
@@ -68,7 +70,6 @@ public class DatabaseAsyncTask extends AsyncTask<String, Integer, String> {
         } finally {
             urlConnection.disconnect();
         }
-
         return result;     // failure
     }
 /*
@@ -92,7 +93,7 @@ public class DatabaseAsyncTask extends AsyncTask<String, Integer, String> {
             result += line;
         }
 
-            /* Close Stream */
+        /* Close Stream */
         if(null!=inputStream){
             inputStream.close();
         }

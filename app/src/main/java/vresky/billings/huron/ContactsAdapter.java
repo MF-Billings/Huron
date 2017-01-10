@@ -1,8 +1,6 @@
 package vresky.billings.huron;
 
 import android.content.Context;
-import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +10,9 @@ import android.widget.TextView;
 
 import java.util.List;
 
+/**
+ * doesn't use edit button
+ */
 public class ContactsAdapter extends BaseAdapter {
 
     static final int MODIFY_CONTACT_REQUEST = 2;
@@ -23,6 +24,10 @@ public class ContactsAdapter extends BaseAdapter {
         super();
         this.contacts = contacts;
         this.context = context;
+    }
+
+    public void replace(List<Contact> contactList) {
+        contacts = contactList;
     }
 
     @Override
@@ -50,26 +55,11 @@ public class ContactsAdapter extends BaseAdapter {
         }
 
         TextView tvContact = (TextView) view.findViewById(R.id.contact_rv_tv_name);
-        Button btnEdit = (Button) view.findViewById(R.id.contact_rv_btn_edit);
         Button btnDelete = (Button) view.findViewById(R.id.contact_rv_btn_delete);
 
         tvContact.setText(contacts.get(position).toString());
 
         // LISTENERS
-
-        // test this
-        btnEdit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context, EditContactActivity.class);
-                String contactKey = context.getResources().getString(R.string.KEY_PARCELABLE_CONTACT);
-                String itemPositionKey = context.getResources().getString(R.string.KEY_ITEM_POSITION);
-
-                intent.putExtra(contactKey, (Contact)getItem(position));
-                intent.putExtra(itemPositionKey, position);
-                ((AppCompatActivity)parent.getContext()).startActivityForResult(intent, MODIFY_CONTACT_REQUEST);
-            }
-        });
 
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
