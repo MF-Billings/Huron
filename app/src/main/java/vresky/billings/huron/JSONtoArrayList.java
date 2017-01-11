@@ -12,9 +12,8 @@ import java.util.ArrayList;
 /**
  * Created by Patrick on 04/01/2017
  * Parses JSON, populates InfoBundle objects, and adds them to an arraylist.
- *
  */
-// TODO optimize
+// TODO handle the case where the data coming from Location is null
 public class JSONtoArrayList {
 
     /**
@@ -23,10 +22,9 @@ public class JSONtoArrayList {
      * @param result return string from getUserInfo method from DatabaseInterface class
      * @return ArrayList containing all the user's contacts and their data
      */
-    public ArrayList<InfoBundle> convert(String result) {
+    public static ArrayList<InfoBundle> convert(String result) {
         ArrayList<InfoBundle> arrayList = new ArrayList<>();
 
-        int j = 0;
         try {
             JSONArray jsonArray = new JSONArray(result);
             JSONObject contact;

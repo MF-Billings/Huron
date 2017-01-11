@@ -124,11 +124,11 @@ public class MainActivity extends AppCompatActivity implements
             // DEBUG
             user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
             user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
-            // set status to empty string - DB can't handle null
-            // TODO commit status
-            user.setStatus(""); // set if null?
+            user.setStatus("");
             db = new DatabaseInterface(user.getUserId(), "GNDN");
         }
+        // retrieve contacts list
+
     }
 
     // for debugging purposes
@@ -373,12 +373,12 @@ public class MainActivity extends AppCompatActivity implements
                     user = (User)obj;
                 }
                 // remove registration action
-                // DOESN'T WORK
-                if (optionsMenu != null) {
-                    MenuItem item = optionsMenu.findItem(R.id.action_register);
-                    item.setVisible(false);
-                    invalidateOptionsMenu();
-                }
+                // DEBUG remove
+//                if (optionsMenu != null) {
+//                    MenuItem item = optionsMenu.findItem(R.id.action_register);
+//                    item.setVisible(false);
+//                    invalidateOptionsMenu();
+//                }
             }
         }
     }
@@ -391,11 +391,12 @@ public class MainActivity extends AppCompatActivity implements
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
         // hide registration option if an existing user id is stored
-        if (user.isRegistered()) {
-            MenuItem item = menu.findItem(R.id.action_register);
-            item.setVisible(false);
-            invalidateOptionsMenu();
-        }
+        // DEBUG remove
+//        if (user.isRegistered()) {
+//            MenuItem item = menu.findItem(R.id.action_register);
+//            item.setVisible(false);
+//            invalidateOptionsMenu();
+//        }
         return true;
     }
 
@@ -433,12 +434,12 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case R.id.action_register:
                 // only allow registration if user doesn't have a user id
-                if (!user.isRegistered()) {
+//                if (!user.isRegistered()) {
                     intent = new Intent(this, RegistrationActivity.class);
                     intent.putExtra(getResources().getString(R.string.KEY_USER), user);
                     intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
                     startActivityForResult(intent, REGISTER_REQUEST);
-                }
+//                }
                 break;
             case R.id.action_settings:
                 intent = new Intent(this, SettingsActivity.class);

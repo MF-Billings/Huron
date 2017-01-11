@@ -21,13 +21,8 @@
             android:textStyle="bold"/>
     </LinearLayout>
     <Button
-        android:id="@+id/contact_rv_btn_edit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/edit_literal"/>
-    <Button
         android:id="@+id/contact_rv_btn_delete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/delete_literal"/>
+        android:text="@string/remove_camel_literal"/>
 </LinearLayout>

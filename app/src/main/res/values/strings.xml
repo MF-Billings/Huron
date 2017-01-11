@@ -22,6 +22,7 @@
     </string>
     <string name="name_literal">Name</string>
     <string name="new_status_hint">Your new custom status</string>
+    <string name="remove_camel_literal">Remove</string>
     <string name="save_literal">Save</string>
     <string name="statuses_literal">Statuses</string>
     <string name="contact_parcel_key">contact</string>

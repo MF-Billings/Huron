@@ -1,10 +1,8 @@
 package vresky.billings.huron;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,29 +59,11 @@ public class StatusAdapter extends BaseAdapter {
         }
 
         final TextView tvString = (TextView) view.findViewById(R.id.contact_rv_tv_name);
-        Button btnEdit = (Button) view.findViewById(R.id.contact_rv_btn_edit);
         Button btnDelete = (Button) view.findViewById(R.id.contact_rv_btn_delete);
 
         tvString.setText(statusList.get(position));
 
         // LISTENERS
-
-        // test this
-        btnEdit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context, AddStatusActivity.class);
-                String classIdentifier = StatusAdapter.class.getSimpleName();
-                intent.putExtra(context.getResources().getString(R.string.KEY_GET_INTENT_CLASS_NAME),
-                        classIdentifier);
-                intent.putExtra(context.getResources().getString(R.string.KEY_CONTACT_STATUS),
-                        tvString.getText().toString());
-                intent.putExtra(context.getResources().getString(R.string.KEY_ITEM_POSITION),
-                        position);
-                ((AppCompatActivity)context).startActivityForResult(intent,
-                        context.getResources().getInteger(R.integer.MODIFY_STATUS_REQUEST));
-            }
-        });
 
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override

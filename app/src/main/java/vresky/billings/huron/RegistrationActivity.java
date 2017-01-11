@@ -87,6 +87,7 @@ public class RegistrationActivity extends Activity {
                         prefsEditor.putString(getResources().getString(R.string.KEY_USERNAME), userName);
                         prefsEditor.apply();
                         registrationIsSuccessful = true;
+                        Log.i(TAG, "user with id " + user.getUserId() + "added");
                     }
                 } else {
                     Toast.makeText(RegistrationActivity.this, "Cannot leave an empty username", Toast.LENGTH_SHORT).show();

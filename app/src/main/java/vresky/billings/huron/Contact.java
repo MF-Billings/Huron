@@ -26,9 +26,13 @@ public class Contact implements Serializable {
         this.bundle = bundle;
     }
 
-
+    // TODO remove
     public String getName() {
         return bundle.getContactName();
+    }
+
+    public InfoBundle getInfoBundle() {
+        return this.bundle;
     }
 
     @Override
