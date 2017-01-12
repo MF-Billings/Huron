@@ -14,6 +14,18 @@ public class User implements Serializable {
     private String status;
     private String username;
 
+    /**
+     * Use to create a user from storage data
+     */
+    public User() { }
+
+    public User(int id, String username, String status) {
+        userId = id;
+        this.username = username;
+        this.status = status;
+        userIsRegistered = true;
+    }
+
     public boolean isRegistered() {
         return this.userIsRegistered;
     }

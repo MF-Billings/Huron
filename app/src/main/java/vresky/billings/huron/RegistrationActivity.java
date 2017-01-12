@@ -2,7 +2,6 @@ package vresky.billings.huron;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -73,21 +72,31 @@ public class RegistrationActivity extends Activity {
                 // add user to database if the input is valid
                 if (!userName.isEmpty()) {
                     String result = db.addUser(userName, "GNDN");
-                    if (result.equals("error")) {
-                        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-                        Log.e(TAG, "User could not be added to database" + stackTraceElements.toString());
-                    } else {
-                        // DEBUG when commented
-                        user.setUserId(Integer.valueOf(result));
+
+                    // result should return an integer id if the statement was successful
+                    if (result.matches("\\d+")) {
+                        // DEBUG
+                        // equivalent to a session-only login
+                        if (user.isRegistered()) {
+                            user.setUserId(Integer.valueOf(result));
+                            user.setStatus("test status");
+                            user.setUsername(userName);
+                        } else {
+                            user = new User(Integer.valueOf(result), userName, "test status");
+                        }
+
                         // store user data
-                        SharedPreferences prefs = getSharedPreferences(
-                                getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
-                        SharedPreferences.Editor prefsEditor = prefs.edit();
-                        prefsEditor.putInt(getResources().getString(R.string.KEY_USER_ID), user.getUserId());
-                        prefsEditor.putString(getResources().getString(R.string.KEY_USERNAME), userName);
-                        prefsEditor.apply();
+//                        SharedPreferences prefs = getSharedPreferences(
+//                                getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
+//                        SharedPreferences.Editor prefsEditor = prefs.edit();
+//                        prefsEditor.putInt(getResources().getString(R.string.KEY_USER_ID), user.getUserId());
+//                        prefsEditor.putString(getResources().getString(R.string.KEY_USERNAME), userName);
+//                        prefsEditor.apply();
                         registrationIsSuccessful = true;
                         Log.i(TAG, "user with id " + user.getUserId() + "added");
+                    } else {
+                        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+                        Log.e(TAG, "User could not be added to database" + stackTraceElements.toString());
                     }
                 } else {
                     Toast.makeText(RegistrationActivity.this, "Cannot leave an empty username", Toast.LENGTH_SHORT).show();

@@ -19,9 +19,7 @@ public class DatabaseInterface implements Serializable {
     /**
      * default constructor if no userName is set
      */
-    public DatabaseInterface() {
-
-    }
+    public DatabaseInterface() { }
 
     // constructor that sets the userID
     public DatabaseInterface(int userID) {
@@ -39,10 +37,10 @@ public class DatabaseInterface implements Serializable {
     }
 
     /**
-     * adds a user to the database, returns user id on success and false on failure
+     * Add a user to the database.  The username cannot contain spaces or it returns "server error"
      * @param userName
      * @param password
-     * @return "success" or "error" depending upon result
+     * @return the user id if success and "server error" otherwise
      */
     public String addUser(String userName, String password) {
         dbat = new DatabaseAsyncTask();

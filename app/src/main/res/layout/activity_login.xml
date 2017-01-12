@@ -11,22 +11,16 @@
         android:orientation="vertical"
         android:layout_margin="10dp">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/register_rationale"/>
         <EditText
-            android:id="@+id/et_username"
+            android:id="@+id/et_user_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/username_literal"
-            android:maxLength="@integer/USERNAME_CHARACTER_LIMIT"/>
-        <TextView
-            android:id="@+id/tv_char_limit"
-            android:layout_width="match_parent"
+            android:hint="@string/your_user_id"/>
+        <CheckBox
+            android:id="@+id/chk_remember_me"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="end"/>
+            android:text="@string/remember_me_message"/>
     </LinearLayout>
 
     <LinearLayout
@@ -42,18 +36,11 @@
             android:text="@string/cancel_literal"
             android:layout_weight="1"
             style="?android:attr/buttonBarButtonStyle"/>
-        <!--<Button-->
-            <!--android:id="@+id/btn_login"-->
-            <!--android:layout_width="0dp"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="Login"-->
-            <!--android:layout_weight="1"-->
-            <!--style="?android:attr/buttonBarButtonStyle"/>-->
         <Button
-            android:id="@+id/btn_register"
+            android:id="@+id/btn_login"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/register_camel_literal"
+            android:text="@string/login_camel_literal"
             android:layout_weight="1"
             style="?android:attr/buttonBarButtonStyle"/>
     </LinearLayout>

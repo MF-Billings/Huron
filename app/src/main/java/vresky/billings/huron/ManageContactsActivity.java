@@ -39,23 +39,6 @@ public class ManageContactsActivity extends AppCompatActivity {
         lvContacts = (ListView) findViewById(R.id.lv_contacts);
         Button btnAddContact = (Button) findViewById(R.id.btn_add_contact);
 
-        // DEBUG
-        // determine if user is registered
-        user = new User();
-        // get user id if one exists
-        prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
-        int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), User.USER_ID_NOT_FOUND);
-        // user has already registered
-        // it matters what constructor you call
-        if (userId == User.USER_ID_NOT_FOUND) {
-            db = new DatabaseInterface();
-        } else {
-            user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
-            user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
-            user.setStatus("");
-            db = new DatabaseInterface(user.getUserId(), "GNDN");
-        }
-
         // create adapter that will store contact list
         contactsArrayAdapter = new ContactsAdapter(this, new ArrayList<Contact>());
 
@@ -65,8 +48,6 @@ public class ManageContactsActivity extends AppCompatActivity {
         contactsHeader.setText(getResources().getString(R.string.contacts_literal));
         lvContacts.addHeaderView(contactsHeader);           // must be called before setAdapter if pre-Kitkat (Android 4.4)
         lvContacts.setAdapter(contactsArrayAdapter);
-
-        retrieveContacts();
 
         // unmarshall intent extras
         Object obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ));
@@ -81,6 +62,29 @@ public class ManageContactsActivity extends AppCompatActivity {
         } else {
             Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to User");
         }
+
+        // DEBUG for testing contacts in build configurations that skip MainActivity
+        if (false) {
+            // determine if user is registered
+            user = new User();
+            // get user id if one exists
+            prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
+            int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), User.USER_ID_NOT_FOUND);
+            // user has already registered
+            // it matters what constructor you call
+            if (userId == User.USER_ID_NOT_FOUND) {
+                db = new DatabaseInterface();
+            } else {
+                user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
+                user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
+                user.setStatus("");
+                db = new DatabaseInterface(user.getUserId(), "GNDN");
+            }
+        }
+
+        retrieveContacts();
+
+        // LISTENERS
 
         btnAddContact.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -102,6 +106,7 @@ public class ManageContactsActivity extends AppCompatActivity {
 
     // Tycho id = 34
     // TestAdd id = 42
+    // some1 w/ above as contacts id = 43 at 43.1209, -79.2504 location??
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         // add existing contact (ie. on the server)
@@ -140,7 +145,7 @@ public class ManageContactsActivity extends AppCompatActivity {
     private void retrieveContacts() {
         String getContactsInfoResult = db.getContactsInfo(user.getUserId());
         if (getContactsInfoResult.equals("null")) {
-            Log.d(TAG, "No registered user with id " + user.getUserId());
+            Log.d(TAG, "No registered user with id " + user.getUserId() + ". No contacts to retrieve.");
         }
         else if (getContactsInfoResult.equals("error")) {
             Log.d(TAG, "db.getContactsInfo(user.getUserId()) returned 'error'");

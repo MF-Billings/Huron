@@ -53,6 +53,11 @@
             android:theme="@android:style/Theme.Holo.Light.Dialog"
             android:screenOrientation="portrait"/>
         <activity
+            android:name=".LoginActivity"
+            android:label="Login"
+            android:theme="@android:style/Theme.Holo.Light.Dialog"
+            android:screenOrientation="portrait"/>
+        <activity
             android:name=".RegistrationActivity"
             android:label="@string/register_camel_literal"
             android:theme="@android:style/Theme.Holo.Light.Dialog"

@@ -35,6 +35,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Matt on 14/12/2016
  * polls for location updates while app is running in the foreground
@@ -50,7 +53,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
     - toggling the tracking using the action button in the toolbar removes the marker but does not
     replace it when run in the emulator
  */
-// TODO hide registration feature after user registers for the 1st time
+// TODO show contacts on map if the contact if the user returns to the map in the same session they added the contact in
+    // onCreate not called after dialog activities
 // TODO system breaks if user doesn't have a status when they register
 // TODO add list for user's contacts
 // TODO what's a user's status when they first log in?
@@ -63,20 +67,25 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = MainActivity.class.getSimpleName();
     public static boolean trackingIsEnabled = true;          // true if the user's location is currently being recorded
 
+    // LOCATIONS FOR DEBUG
+    public static final LatLng ALPHIES_TROUGH = new LatLng(43.121159, -79.250452);
+    public static final LatLng ALUMNI_FIELD = new LatLng(43.11917, -79.252973);
+
     private final int REGISTER_REQUEST = 1;
 
     private User user;       // the app user
-//    private ArrayList<Contact>
-    SharedPreferences prefs;
+    private SharedPreferences prefs;
     private DatabaseInterface db;
     private Menu optionsMenu;           // allow access of toolbar menu outside toolbar-specific methods
+    private List<ContactMapWrapper> mapContacts = new ArrayList<>();
 
     // MAP FIELDS
+
     private GoogleMap mMap;
 
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted.
-    private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
+    private final LatLng mDefaultLocation = new LatLng(43.117608, -79.246525);
     private static final int DEFAULT_ZOOM = 15;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
@@ -111,24 +120,36 @@ public class MainActivity extends AppCompatActivity implements
         mGoogleApiClient.connect();
         createLocationRequest();
 
-        // determine if user is registered
-        user = new User();
-        // get user id if one exists
-        prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
-        int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), User.USER_ID_NOT_FOUND);
-        // user has already registered
-        // it matters what constructor you call
-        if (userId == User.USER_ID_NOT_FOUND) {
-            db = new DatabaseInterface();
-        } else {
-            // DEBUG
-            user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
-            user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
-            user.setStatus("");
-            db = new DatabaseInterface(user.getUserId(), "GNDN");
-        }
-        // retrieve contacts list
+        // DEBUG
+        user = new User(51, "TheLofts51", "test status");
+//        user = new User(43, "test", "test status");
+        db = new DatabaseInterface(user.getUserId(), "GNDN");
+        //
 
+        // determine if user is registered
+        if (user == null) {
+            user = new User();
+            // get user id if one exists
+            prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
+            int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), User.USER_ID_NOT_FOUND);
+            // user has already registered
+            // it matters what constructor is called
+            if (userId == User.USER_ID_NOT_FOUND) {
+                db = new DatabaseInterface();
+            } else {
+                // DEBUG
+                user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
+                user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
+                user.setStatus("");
+                db = new DatabaseInterface(user.getUserId(), "GNDN");
+            }
+        }
+
+        // retrieve contacts list to display on map
+        List<Contact> contactsList = Helper.retrieveContacts(TAG, user, db);
+        for (Contact c : contactsList) {
+            mapContacts.add(new ContactMapWrapper(c));
+        }
     }
 
     // for debugging purposes
@@ -179,14 +200,23 @@ public class MainActivity extends AppCompatActivity implements
                 // send location info on initialization to server
                 if (user.isRegistered()) {
                     db.setUserInfo(user.getUserId(), latLng.latitude, latLng.longitude, mCurrentLocation.getTime(), "");
-                }
 
-                // DEBUG retrieve info
-//                String result = db.getUserInfo(user.getUserId());
-//                JSONtoArrayList JSONparser = new JSONtoArrayList();
-//                ArrayList<InfoBundle> contactBundle = JSONparser.convert(result);
-                InfoBundle contactBundle = new InfoBundle(-1, "testboi", mCurrentLocation, "status");
-                Log.d(TAG, "Info Bundle:\n" + contactBundle);   //.get(0).toString()
+                    // display contacts location to the user on the map
+                    for (ContactMapWrapper c : mapContacts) {
+                        LatLng contactLatLng = new LatLng(c.getContact().getLocation().getLatitude(),
+                                c.getContact().getLocation().getLongitude());
+                        c.setMarker(mMap.addMarker(new MarkerOptions()
+                                .position(contactLatLng)
+                                .title(c.getContact().getName())
+                        ));
+                        // include contact status if they have one
+                        if (!c.getContact().getStatus().equals("")) {
+                            c.getMarker().setSnippet(c.getContact().getStatus());
+                        }
+                        // display marker info automatically
+                        c.getMarker().showInfoWindow();
+                    }
+                }
             }
             Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude + "\n"
                 + "Time: " + mCurrentLocation.getTime());
@@ -440,6 +470,10 @@ public class MainActivity extends AppCompatActivity implements
                     intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
                     startActivityForResult(intent, REGISTER_REQUEST);
 //                }
+                break;
+            case R.id.action_login:
+                intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
                 break;
             case R.id.action_settings:
                 intent = new Intent(this, SettingsActivity.class);

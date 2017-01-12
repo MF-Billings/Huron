@@ -9,8 +9,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.util.List;
-
 /**
  * Created by Matt on 20/12/2016.
  * single fragment activity to contain the AddContactFragment
@@ -21,7 +19,6 @@ public class AddContactActivity extends Activity {
     private boolean returnDataIsEmpty;
     private DatabaseInterface db;
     private User user;
-    private List<Contact> contactsList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +74,7 @@ public class AddContactActivity extends Activity {
                         // return contact data to contact's list
                         else {
                             // notify user of successful operation
-                            // replace contacts list (no method for returning added contact)
+                            // replace contacts list
                             returnDataIsEmpty = false;
                             result.putExtra("success", true);
                             operationUserFeedback = "Contact added";

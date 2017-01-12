@@ -46,11 +46,13 @@ public class SettingsActivity extends AppCompatActivity {
         btnGetId.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String userId = String.valueOf(user.getUserId());
-                Toast.makeText(SettingsActivity.this, userId, Toast.LENGTH_SHORT).show();
+                String result = "You are not yet registered";
+                if (user != null && user.isRegistered()) {
+                    result = String.valueOf(user.getUserId());
+                }
+
+                Toast.makeText(SettingsActivity.this, result, Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-
 }

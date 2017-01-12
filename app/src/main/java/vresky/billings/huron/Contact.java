@@ -1,5 +1,7 @@
 package vresky.billings.huron;
 
+import android.location.Location;
+
 import java.io.Serializable;
 
 /**
@@ -31,8 +33,15 @@ public class Contact implements Serializable {
         return bundle.getContactName();
     }
 
-    public InfoBundle getInfoBundle() {
-        return this.bundle;
+    public int getId() {
+        return bundle.getContactID();
+    }
+    public String getStatus() {
+        return bundle.getStatus();
+    }
+
+    public Location getLocation() {
+        return bundle.getLocation();
     }
 
     @Override

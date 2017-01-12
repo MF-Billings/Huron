@@ -26,9 +26,11 @@
     <string name="save_literal">Save</string>
     <string name="statuses_literal">Statuses</string>
     <string name="contact_parcel_key">contact</string>
+    <string name="login_camel_literal">Login</string>
     <string name="register_camel_literal">Register</string>
     <string name="register_rationale">In order use all the features of this app you need to register
         for an account.</string>
+    <string name="remember_me_message">Remember me</string>
     <string name="settings">Settings</string>
     <string name="toggle_tracking">Toggle tracking</string>
 
