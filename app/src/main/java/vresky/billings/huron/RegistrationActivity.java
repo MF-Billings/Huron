@@ -10,6 +10,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import vresky.billings.huron.Database.DatabaseInterface;
+
 /**
  * Created by Matt on 05/01/2017.
  * Create an account to use the app. Required to add user data to the server
@@ -31,13 +33,15 @@ public class RegistrationActivity extends Activity {
         Button btnRegister = (Button)findViewById(R.id.btn_register);
         TextView tvCharLimit = (TextView)findViewById(R.id.tv_char_limit) ;
 
+        db = DatabaseInterface.getInstance();
+
         // unmarshall intent extras
         Object obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ));
-        if (obj instanceof DatabaseInterface) {
-            db = (DatabaseInterface)obj;
-        } else {
-            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to DatabaseInterface");
-        }
+//        if (obj instanceof DatabaseInterface) {
+//            db = (DatabaseInterface)obj;
+//        } else {
+//            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to DatabaseInterface");
+//        }
         obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
         if (obj instanceof User) {
             user = (User)obj;

@@ -27,4 +27,7 @@
         android:id="@+id/action_register"
         android:title="@string/register_camel_literal"
         app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_debug_get_user_info"
+        android:title="Get user info"/>
 </menu>

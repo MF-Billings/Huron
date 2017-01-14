@@ -1,4 +1,4 @@
-package vresky.billings.huron;
+package vresky.billings.huron.Database;
 
 import java.io.Serializable;
 
@@ -8,10 +8,13 @@ import java.io.Serializable;
  * Uses DatabaseAsyncTask to push and pull data from web service.
  * Web service built by Patrick.
  *
+ * Simple singleton. Not thread safe or rigorous.  This was implemented largely to alleviate the
+ * need to pass references to the same database object between activities.
  */
-// TODO singleton?
+
 public class DatabaseInterface implements Serializable {
 
+    private static DatabaseInterface instance = null;       // do not access directly
     private int userID;
     private String userName;
 
@@ -19,22 +22,32 @@ public class DatabaseInterface implements Serializable {
     /**
      * default constructor if no userName is set
      */
-    public DatabaseInterface() { }
+//    public DatabaseInterface() { }
+//
+//    // constructor that sets the userID
+//    public DatabaseInterface(int userID) {
+//        this.userID = userID;
+//    }
 
-    // constructor that sets the userID
-    public DatabaseInterface(int userID) {
-        this.userID = userID;
+//    /**
+//     * use once the user has added himself to the database (this will be implemented soon)
+//     * @param userID
+//     * @param password
+//     */
+//    public DatabaseInterface(int userID, String password) {
+//        this.userID = userID;
+//        //authUser(userName, password);
+//    }
+//
+    // prevents instantiation
+    protected DatabaseInterface() {}
+
+    public static DatabaseInterface getInstance() {
+        if (instance == null)
+            instance = new DatabaseInterface();
+        return instance;
     }
 
-    /**
-     * use once the user has added himself to the database (this will be implemented soon)
-     * @param userID
-     * @param password
-     */
-    public DatabaseInterface(int userID, String password) {
-        this.userID = userID;
-        //authUser(userName, password);
-    }
 
     /**
      * Add a user to the database.  The username cannot contain spaces or it returns "server error"

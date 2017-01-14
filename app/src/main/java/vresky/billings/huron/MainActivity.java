@@ -38,6 +38,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.ArrayList;
 import java.util.List;
 
+import vresky.billings.huron.Database.DatabaseInterface;
+
 /**
  * Created by Matt on 14/12/2016
  * polls for location updates while app is running in the foreground
@@ -53,10 +55,11 @@ import java.util.List;
     - toggling the tracking using the action button in the toolbar removes the marker but does not
     replace it when run in the emulator
  */
+// TODO location markers not altered on registration, sign in, sign out
+// TODO hide contact locations if the user isn't showing theirs
 // TODO show contacts on map if the contact if the user returns to the map in the same session they added the contact in
     // onCreate not called after dialog activities
 // TODO system breaks if user doesn't have a status when they register
-// TODO add list for user's contacts
 // TODO what's a user's status when they first log in?
 public class MainActivity extends AppCompatActivity implements
         OnMapReadyCallback,
@@ -67,11 +70,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = MainActivity.class.getSimpleName();
     public static boolean trackingIsEnabled = true;          // true if the user's location is currently being recorded
 
-    // LOCATIONS FOR DEBUG
-    public static final LatLng ALPHIES_TROUGH = new LatLng(43.121159, -79.250452);
-    public static final LatLng ALUMNI_FIELD = new LatLng(43.11917, -79.252973);
-
     private final int REGISTER_REQUEST = 1;
+    private final int LOGIN_REQUEST = 2;
 
     private User user;       // the app user
     private SharedPreferences prefs;
@@ -123,7 +123,8 @@ public class MainActivity extends AppCompatActivity implements
         // DEBUG
         user = new User(51, "TheLofts51", "test status");
 //        user = new User(43, "test", "test status");
-        db = new DatabaseInterface(user.getUserId(), "GNDN");
+//        db = new DatabaseInterface(user.getUserId(), "GNDN");
+        db = DatabaseInterface.getInstance();
         //
 
         // determine if user is registered
@@ -135,13 +136,7 @@ public class MainActivity extends AppCompatActivity implements
             // user has already registered
             // it matters what constructor is called
             if (userId == User.USER_ID_NOT_FOUND) {
-                db = new DatabaseInterface();
-            } else {
-                // DEBUG
-                user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
-                user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
-                user.setStatus("");
-                db = new DatabaseInterface(user.getUserId(), "GNDN");
+                // ?
             }
         }
 
@@ -283,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements
                 if (trackingIsEnabled && user.isRegistered()) {
                     String result = db.setUserInfo(user.getUserId(), location.getLatitude(), location.getLongitude(),
                             location.getTime(), user.getStatus());
-                    // defined by db interface class
+
                     if (result.equals("error")) {
                         Log.e(TAG, "setUserInfo failed at onLocationChanged");
                     } else {
@@ -400,7 +395,7 @@ public class MainActivity extends AppCompatActivity implements
                 // store user
                 Object obj = data.getSerializableExtra(getResources().getString(R.string.KEY_USER));
                 if (obj instanceof User) {
-                    user = (User)obj;
+                    user = (User) obj;
                 }
                 // remove registration action
                 // DEBUG remove
@@ -409,6 +404,13 @@ public class MainActivity extends AppCompatActivity implements
 //                    item.setVisible(false);
 //                    invalidateOptionsMenu();
 //                }
+            }
+        } else if (requestCode == LOGIN_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Object obj = data.getSerializableExtra(getResources().getString(R.string.KEY_USER));
+                if (obj instanceof User) {
+                    user = (User) obj;
+                }
             }
         }
     }
@@ -467,18 +469,23 @@ public class MainActivity extends AppCompatActivity implements
 //                if (!user.isRegistered()) {
                     intent = new Intent(this, RegistrationActivity.class);
                     intent.putExtra(getResources().getString(R.string.KEY_USER), user);
-                    intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
+//                    intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
                     startActivityForResult(intent, REGISTER_REQUEST);
 //                }
                 break;
             case R.id.action_login:
                 intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, LOGIN_REQUEST);
                 break;
             case R.id.action_settings:
                 intent = new Intent(this, SettingsActivity.class);
                 intent.putExtra(getResources().getString(R.string.KEY_USER), user);
                 startActivity(intent);
+                break;
+            // DEBUG
+            case R.id.action_debug_get_user_info:
+                if (user != null)
+                    Log.d(TAG, user.toString());
                 break;
             default:
                 result = false;

@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import vresky.billings.huron.Database.DatabaseInterface;
+
 /**
  * doesn't use edit button
  */

@@ -1,4 +1,4 @@
-package vresky.billings.huron;
+package vresky.billings.huron.Database;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -18,7 +18,8 @@ import java.net.URL;
  * Used by database interface to pull/push data to the web service.
  * Web service built by Patrick.
  */
-public class DatabaseAsyncTask extends AsyncTask<String, Integer, String> implements Serializable {
+// TODO move into DatabaseInterface class?
+class DatabaseAsyncTask extends AsyncTask<String, Integer, String> implements Serializable {
 
     public Integer success;     // 0 for failure, 1 for success
     public String result;
@@ -57,8 +58,6 @@ public class DatabaseAsyncTask extends AsyncTask<String, Integer, String> implem
                     e.printStackTrace();
                 }
 
-                //parseResult(response);
-
                 success = 1; // Successful
 
             } else {
@@ -72,16 +71,7 @@ public class DatabaseAsyncTask extends AsyncTask<String, Integer, String> implem
         }
         return result;     // failure
     }
-/*
-    @Override
-    protected void onPostExecute(Integer success) {
-        if(success == 1){
-            Log.d("ON POST EXEC", result);
-        }else{
-            Log.e(TAG, "failed ");
-        }
-    }
-*/
+
     private String convertInputStreamToString(InputStream inputStream) throws IOException {
 
         BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));

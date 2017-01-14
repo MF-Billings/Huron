@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import vresky.billings.huron.Database.DatabaseInterface;
+
 /**
  * Created by Matt on 20/12/2016.
  * single fragment activity to contain the AddContactFragment
@@ -30,13 +32,15 @@ public class AddContactActivity extends Activity {
         Button btnAddContact = (Button)findViewById(R.id.add_contact_save);
         final EditText etContactId = (EditText)findViewById(R.id.et_first_name);
 
+        db = DatabaseInterface.getInstance();
+
         // unmarshall intent extras
         Object obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ));
-        if (obj instanceof DatabaseInterface) {
-            db = (DatabaseInterface)obj;
-        } else {
-            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to DatabaseInterface");
-        }
+//        if (obj instanceof DatabaseInterface) {
+//            db = (DatabaseInterface)obj;
+//        } else {
+//            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to DatabaseInterface");
+//        }
         obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
         if (obj instanceof User) {
             user = (User)obj;

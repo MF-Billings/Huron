@@ -54,4 +54,8 @@ public class User implements Serializable {
     public void setUsername(String username) {
         this.username = username;
     }
+
+    public String toString() {
+        return String.format("Username: %s%nId: %d%nStatus: %s", username, userId, status);
+    }
 }

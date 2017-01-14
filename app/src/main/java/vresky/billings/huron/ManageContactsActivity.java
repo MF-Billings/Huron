@@ -15,6 +15,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import vresky.billings.huron.Database.DatabaseInterface;
+
 /**
  * Created by Matt on 16/12/2016.
  * Main interface for interacting with and viewing user contacts
@@ -49,13 +51,14 @@ public class ManageContactsActivity extends AppCompatActivity {
         lvContacts.addHeaderView(contactsHeader);           // must be called before setAdapter if pre-Kitkat (Android 4.4)
         lvContacts.setAdapter(contactsArrayAdapter);
 
+        db = DatabaseInterface.getInstance();
         // unmarshall intent extras
         Object obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ));
-        if (obj instanceof DatabaseInterface) {
-            db = (DatabaseInterface)obj;
-        } else {
-            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to DatabaseInterface");
-        }
+//        if (obj instanceof DatabaseInterface) {
+//            db = (DatabaseInterface)obj;
+//        } else {
+//            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to DatabaseInterface");
+//        }
         obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
         if (obj instanceof User) {
             user = (User)obj;
@@ -64,23 +67,23 @@ public class ManageContactsActivity extends AppCompatActivity {
         }
 
         // DEBUG for testing contacts in build configurations that skip MainActivity
-        if (false) {
-            // determine if user is registered
-            user = new User();
-            // get user id if one exists
-            prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
-            int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), User.USER_ID_NOT_FOUND);
-            // user has already registered
-            // it matters what constructor you call
-            if (userId == User.USER_ID_NOT_FOUND) {
-                db = new DatabaseInterface();
-            } else {
-                user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
-                user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
-                user.setStatus("");
-                db = new DatabaseInterface(user.getUserId(), "GNDN");
-            }
-        }
+//        if (false) {
+//            // determine if user is registered
+//            user = new User();
+//            // get user id if one exists
+//            prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
+//            int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), User.USER_ID_NOT_FOUND);
+//            // user has already registered
+//            // it matters what constructor you call
+//            if (userId == User.USER_ID_NOT_FOUND) {
+//                db = new DatabaseInterface();
+//            } else {
+//                user.setUserId(prefs.getInt(getResources().getString(R.string.KEY_USER_ID), -1));
+//                user.setUsername(prefs.getString(getResources().getString(R.string.KEY_USERNAME), ""));
+//                user.setStatus("");
+//                db = new DatabaseInterface(user.getUserId(), "GNDN");
+//            }
+//        }
 
         retrieveContacts();
 
