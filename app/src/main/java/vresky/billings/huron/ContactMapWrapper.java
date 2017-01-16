@@ -30,4 +30,16 @@ public class ContactMapWrapper {
     public void setMarker(Marker marker) {
         this.marker = marker;
     }
+
+    /**
+     * Remove all data stored in the object. This also removes any map markers from the map.
+     */
+    public void wipe() {
+        if (marker != null) {
+            // remove the marker from the map
+            marker.remove();
+            marker = null;
+        }
+        contact = null;
+    }
 }

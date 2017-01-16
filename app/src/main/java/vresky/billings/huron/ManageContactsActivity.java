@@ -1,7 +1,6 @@
 package vresky.billings.huron;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -14,12 +13,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import vresky.billings.huron.Database.DatabaseInterface;
 
 /**
  * Created by Matt on 16/12/2016.
  * Main interface for interacting with and viewing user contacts
+ * Button events triggered within the rows are handled by the adapter class
  */
 // TODO more testing with new contacts
 public class ManageContactsActivity extends AppCompatActivity {
@@ -27,22 +28,24 @@ public class ManageContactsActivity extends AppCompatActivity {
     static final String TAG = ManageContactsActivity.class.getSimpleName();
     static final int ADD_CONTACT_REQUEST = 1;
 
-//    List<Contact> contacts;
-    DatabaseInterface db;
-    public User user;
-    ListView lvContacts;
-    ContactsAdapter contactsArrayAdapter; SharedPreferences prefs;
+    private DatabaseInterface db;
+    private User user;
+    private ListView lvContacts;
+    private ContactsAdapter contactsArrayAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_contacts);
 
-        lvContacts = (ListView) findViewById(R.id.lv_contacts);
-        Button btnAddContact = (Button) findViewById(R.id.btn_add_contact);
+        lvContacts = (ListView)findViewById(R.id.lv_contacts);
+        Button btnAddContact = (Button)findViewById(R.id.btn_add_contact);
 
-        // create adapter that will store contact list
-        contactsArrayAdapter = new ContactsAdapter(this, new ArrayList<Contact>());
+        db = DatabaseInterface.getInstance();
+        user = User.getInstance();
+
+        // makes accessing the content list directly easier; would need to deal with HeaderListView otherwise
+        contactsArrayAdapter = new ContactsAdapter(this, user.getContacts());
 
         // create textview for header in code and add it to the listview
         TextView contactsHeader = new TextView(this);
@@ -51,7 +54,7 @@ public class ManageContactsActivity extends AppCompatActivity {
         lvContacts.addHeaderView(contactsHeader);           // must be called before setAdapter if pre-Kitkat (Android 4.4)
         lvContacts.setAdapter(contactsArrayAdapter);
 
-        db = DatabaseInterface.getInstance();
+
         // unmarshall intent extras
         Object obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ));
 //        if (obj instanceof DatabaseInterface) {
@@ -59,12 +62,15 @@ public class ManageContactsActivity extends AppCompatActivity {
 //        } else {
 //            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to DatabaseInterface");
 //        }
-        obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
-        if (obj instanceof User) {
-            user = (User)obj;
-        } else {
-            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to User");
-        }
+
+        // DEBUG for testing passing of User object which contains contacts
+//        obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
+//        if (obj instanceof User) {
+//            user = (User)obj;
+//        } else {
+//            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to User");
+//        }
+        //
 
         // DEBUG for testing contacts in build configurations that skip MainActivity
 //        if (false) {
@@ -94,8 +100,8 @@ public class ManageContactsActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // add contact with the server's help
                 Intent intent = new Intent(ManageContactsActivity.this, AddContactActivity.class);
-                intent.putExtra(getResources().getString(R.string.KEY_USER), user);
-                intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
+//                intent.putExtra(getResources().getString(R.string.KEY_USER), user);
+//                intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
                 startActivityForResult(intent, ADD_CONTACT_REQUEST);
             }
         });
@@ -105,6 +111,8 @@ public class ManageContactsActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        // save contacts upon
+        user.setContacts(contactsArrayAdapter.getContacts());
     }
 
     // Tycho id = 34
@@ -125,10 +133,11 @@ public class ManageContactsActivity extends AppCompatActivity {
                     else if (getContactsInfoResult.equals("error")) {
                         Log.d(TAG, "db.getContactsInfo(user.getUserId()) returned 'error'");
                     }
+                    // success
                     else {
                         ArrayList<InfoBundle> contactInfoBundle = JSONtoArrayList.convert(getContactsInfoResult);
                         // convert InfoBundles to contacts to populate list for adapter
-                        ArrayList<Contact> contactsList = new ArrayList<>();
+                        List<Contact> contactsList = new ArrayList<>();
                         for (InfoBundle i : contactInfoBundle) {
                             contactsList.add(new Contact(i));
                         }

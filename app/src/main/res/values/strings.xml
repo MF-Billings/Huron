@@ -11,6 +11,7 @@
     <string name="contacts_literal">Contacts</string>
     <string name="characters_remaining_message">Characters remaining: %1$d</string>
     <string name="default_zoom">Default zoom</string>
+    <string name="delete_confirmation_message">Are you sure you want to remove %s?</string>
     <string name="delete_literal">Delete</string>
     <string name="deleted_literal">Deleted</string>
     <string name="edit_literal">Edit</string>
@@ -37,7 +38,7 @@
     <string name="undo_literal">undo</string>
     <string name="update_status">Update status</string>
     <string name="username_literal">Your desired username</string>
-    <string name="your_user_id">your user id</string>
+    <string name="your_user_id_message">Your user id</string>
 
     <string name="invalid_contact_edit_message">No content. Changes discarded.</string>
     <string name="invalid_status_edit_message_empty">Cannot add an empty status</string>

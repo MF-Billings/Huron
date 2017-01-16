@@ -29,6 +29,7 @@ import java.util.List;
  * updates status
  */
 // TODO check if status indicator saves
+// TODO add clear status widget
 public class UpdateStatusActivity extends AppCompatActivity {
 
     private final String TAG = this.getClass().getSimpleName();
@@ -73,7 +74,7 @@ public class UpdateStatusActivity extends AppCompatActivity {
         lvStatus.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                view.findViewById(R.id.contact_rv_btn_delete);
+                view.findViewById(R.id.btn_delete);
                 // header offsets position by 1
                 int truePosition = position - 1;
                 // turn off highlighting from previously selected item and enable selection on new item

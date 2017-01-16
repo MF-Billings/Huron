@@ -34,20 +34,7 @@ public class RegistrationActivity extends Activity {
         TextView tvCharLimit = (TextView)findViewById(R.id.tv_char_limit) ;
 
         db = DatabaseInterface.getInstance();
-
-        // unmarshall intent extras
-        Object obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ));
-//        if (obj instanceof DatabaseInterface) {
-//            db = (DatabaseInterface)obj;
-//        } else {
-//            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to DatabaseInterface");
-//        }
-        obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
-        if (obj instanceof User) {
-            user = (User)obj;
-        } else {
-            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to User");
-        }
+        user = User.getInstance();
 
         // initialize character limit message
         tvCharLimit.setText(getResources().getString(R.string.characters_remaining_message,
@@ -71,7 +58,6 @@ public class RegistrationActivity extends Activity {
             @Override
             public void onClick(View v) {
                 String userName = etUsername.getText().toString();
-                Toast.makeText(RegistrationActivity.this, "register btn", Toast.LENGTH_SHORT).show();
 
                 // add user to database if the input is valid
                 if (!userName.isEmpty()) {
@@ -85,9 +71,11 @@ public class RegistrationActivity extends Activity {
                             user.setUserId(Integer.valueOf(result));
                             user.setStatus("test status");
                             user.setUsername(userName);
-                        } else {
-                            user = new User(Integer.valueOf(result), userName, "test status");
                         }
+                        // DEBUG don't think I need this anymore
+//                        else {
+//                            user = new User(Integer.valueOf(result), userName, "test status");
+//                        }
 
                         // store user data
 //                        SharedPreferences prefs = getSharedPreferences(

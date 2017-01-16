@@ -1,6 +1,8 @@
 package vresky.billings.huron;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,17 +18,17 @@ import vresky.billings.huron.Database.DatabaseInterface;
 /**
  * doesn't use edit button
  */
-// TODO add confirmation for deletion
 public class ContactsAdapter extends BaseAdapter {
 
     final String TAG = this.getClass().getSimpleName();
-    static final int MODIFY_CONTACT_REQUEST = 2;
 
     private Context context;
     private List<Contact> contacts;
+    private DatabaseInterface db;
 
     public ContactsAdapter(Context context, List<Contact> contacts) {
         super();
+        db = DatabaseInterface.getInstance();
         this.contacts = contacts;
         this.context = context;
     }
@@ -64,7 +66,7 @@ public class ContactsAdapter extends BaseAdapter {
         }
 
         TextView tvContact = (TextView) view.findViewById(R.id.contact_rv_tv_name);
-        Button btnDelete = (Button) view.findViewById(R.id.contact_rv_btn_delete);
+        Button btnDelete = (Button) view.findViewById(R.id.btn_delete);
 
         tvContact.setText(contacts.get(position).getName());
 
@@ -73,36 +75,46 @@ public class ContactsAdapter extends BaseAdapter {
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // DEBUG note sure if this will cause problems
-                DatabaseInterface db = null;
-                int userId = -1;
-//                db.removeContact()
-                if (context instanceof ManageContactsActivity) {
-                    db = ((ManageContactsActivity)context).db;
-                    userId = ((ManageContactsActivity)context).user.getUserId();
-                }
-                if (db != null) {
-                    Contact contactToRemove = contacts.get(position);
-                    String removeResult = db.removeContact(userId, contactToRemove.getId());
-                    if (removeResult.equals("error")) {
-                        Log.d(TAG, "Contact could not be removed server-side");
-                    }
-                }
-                contacts.remove(position);
-                // delete if chosen status isn't the active user status
-//                View containerLayout = ((LinearLayout)v.getParent());
-//                Drawable drawable = containerLayout.getBackground();
-//                ColorDrawable bg = (ColorDrawable)drawable;
-//
-//                if (bg.getColor() == UpdateStatusActivity.getStatusColor()) {
-//                    Toast.makeText(context, "Cannot delete active status", Toast.LENGTH_SHORT).show();
-//                } else {
-//                    statusList.remove(position);
-//                    notifyDataSetChanged();
-//                }
-                notifyDataSetChanged();
+                // prompt user for delete confirmation.
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+                alertDialogBuilder.setTitle("Delete Contact?")
+                    .setMessage(context.getResources().getString(R.string.delete_confirmation_message, "this contact"))
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            deleteContact(position);
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                AlertDialog deleteConfirmationDialog = alertDialogBuilder.create();
+                deleteConfirmationDialog.show();
             }
         });
         return view;
+    }
+
+    private void deleteContact(int position) {
+        // remove the contact from user's contacts list
+        int userId = -1;
+        if (context instanceof ManageContactsActivity) {
+//            userId = ((ManageContactsActivity)context).user.getUserId();
+            userId = User.getInstance().getUserId();
+        }
+
+        if (db != null) {
+            Contact contactToRemove = contacts.get(position);
+            String removeResult = db.removeContact(userId, contactToRemove.getId());
+            if (removeResult.equals("error")) {
+                Log.d(TAG, "Contact could not be removed server-side");
+            }
+        }
+        contacts.remove(position);
+        notifyDataSetChanged();
     }
 }

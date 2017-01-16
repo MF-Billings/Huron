@@ -1,29 +1,38 @@
 package vresky.billings.huron;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Matt on 06/01/2017.
  * Contains necessary data about app user
  */
 public class User implements Serializable {
+    private static User instance;
     public final static int USER_ID_NOT_FOUND = -1;
 
-    private int userId = USER_ID_NOT_FOUND;
-    private boolean userIsRegistered = false;           // if this is false then the data is worthless
-    private String status;
-    private String username;
+    private static int userId = USER_ID_NOT_FOUND;
+    private static boolean userIsRegistered = false;           // if this is false then the data is worthless
+    private static String status;
+    private static String username;
+    List<Contact> contacts = new ArrayList<>();
 
-    /**
-     * Use to create a user from storage data
-     */
-    public User() { }
+    protected User() { }
 
+    // DEBUG delete when done testing
     public User(int id, String username, String status) {
-        userId = id;
+        this.userId = id;
         this.username = username;
         this.status = status;
-        userIsRegistered = true;
+        this.userIsRegistered = true;
+        this.contacts = new ArrayList<>();
+    }
+
+    public static User getInstance() {
+        if (instance == null)
+            instance = new User();
+        return instance;
     }
 
     public boolean isRegistered() {
@@ -31,7 +40,7 @@ public class User implements Serializable {
     }
 
     public int getUserId() {
-        return userId;
+        return instance.userId;
     }
 
     public void setUserId(int userId) {
@@ -53,6 +62,14 @@ public class User implements Serializable {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public List<Contact> getContacts() {
+        return contacts;
+    }
+
+    public void setContacts(List<Contact> contactsList) {
+        this.contacts = contactsList;
     }
 
     public String toString() {

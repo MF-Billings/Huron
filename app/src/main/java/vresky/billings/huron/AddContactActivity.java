@@ -21,6 +21,7 @@ public class AddContactActivity extends Activity {
     private boolean returnDataIsEmpty;
     private DatabaseInterface db;
     private User user;
+    private boolean isValidInputId;        // ensures that the set of user contacts aligns with expectations
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,20 +34,16 @@ public class AddContactActivity extends Activity {
         final EditText etContactId = (EditText)findViewById(R.id.et_first_name);
 
         db = DatabaseInterface.getInstance();
+        user = User.getInstance();
 
         // unmarshall intent extras
         Object obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ));
-//        if (obj instanceof DatabaseInterface) {
-//            db = (DatabaseInterface)obj;
+//        obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
+//        if (obj instanceof User) {
+//            user = (User)obj;
 //        } else {
-//            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to DatabaseInterface");
+//            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to User");
 //        }
-        obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
-        if (obj instanceof User) {
-            user = (User)obj;
-        } else {
-            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to User");
-        }
 
         // LISTENERS
 
@@ -65,39 +62,61 @@ public class AddContactActivity extends Activity {
                 String operationUserFeedback = "";
                 String contactIdInput = etContactId.getText().toString();
                 Intent result = new Intent();
+                isValidInputId = true;
 
                 if (!contactIdInput.equals("")) {
                     String addContactResult;
-                    // check for contact server-side
-                    if (user.isRegistered()) {
-                        addContactResult = db.addContact(user.getUserId(), Integer.valueOf(contactIdInput));
+                    int nContactIdInput = Integer.valueOf(contactIdInput);
 
-                        if (addContactResult.equals("error")) {
-                            operationUserFeedback = "Could not find contact with id " + contactIdInput;
-                        }
-                        // return contact data to contact's list
-                        else {
-                            // notify user of successful operation
-                            // replace contacts list
-                            returnDataIsEmpty = false;
-                            result.putExtra("success", true);
-                            operationUserFeedback = "Contact added";
-                        }
-                    }
+                    // TODO check for contact's existence server-side
+
+                   if (user.isRegistered()) {
+                       // the user shouldn't be able to add themselves as a contact
+                       if (nContactIdInput == user.getUserId()) {
+                           operationUserFeedback = "You cannot add yourself as a contact";
+                           isValidInputId = false;
+                       } else {
+                           // the user shouldn't be able to add the same contact more than once
+                           for (Contact c : user.getContacts()) {
+                               if (c.getId() == nContactIdInput) {
+                                   operationUserFeedback = "You cannot add the same user multiple times";
+                                   isValidInputId = false;
+                                   break;
+                               }
+                           }
+                       }
+
+                       if (isValidInputId) {
+                           addContactResult = db.addContact(user.getUserId(), nContactIdInput);
+
+                           // catch server-side errors
+                           if (addContactResult.equals("error")) {
+                               operationUserFeedback = "Could not find contact with id " + contactIdInput;
+                           }
+                           // success; return contact data to contact's list
+                           else {
+                               // replace contacts list
+                               returnDataIsEmpty = false;
+                               result.putExtra("success", true);
+                               operationUserFeedback = "Contact added";
+                           }
+                       }
+                   }
                     Log.d(TAG, contactIdInput);
                 } else {
                     operationUserFeedback = "Cannot add contact without contact id";
                 }
-                Toast.makeText(AddContactActivity.this, operationUserFeedback, Toast.LENGTH_SHORT).show();
+                // notify user of operation result
+                Toast toast = Toast.makeText(AddContactActivity.this, operationUserFeedback, Toast.LENGTH_SHORT);
+                toast.show();
 
                 // return contact data to ManageContactsActivity
                 if (!returnDataIsEmpty) {
                     setResult(Activity.RESULT_OK, result);
-                    finish();
                 } else {
                     setResult(RESULT_CANCELED, result);
-                    finish();
                 }
+                finish();
             }
         });
     }

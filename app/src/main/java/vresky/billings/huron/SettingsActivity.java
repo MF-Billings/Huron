@@ -10,7 +10,6 @@ import android.widget.Toast;
  * Created by Matt on 04/01/2017.
  * Includes widget to return user id
  */
-// TODO display actual userId
 public class SettingsActivity extends AppCompatActivity {
 
     private User user;

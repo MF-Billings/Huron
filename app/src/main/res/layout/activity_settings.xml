@@ -29,5 +29,5 @@
         android:id="@+id/btn_get_user_id"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/your_user_id"/>
+        android:text="@string/your_user_id_message"/>
 </LinearLayout>

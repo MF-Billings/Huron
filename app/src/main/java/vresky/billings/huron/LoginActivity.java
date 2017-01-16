@@ -45,8 +45,9 @@ public class LoginActivity extends Activity {
                 // TODO set userAccount with result from server query
                 User userAccount = new User();
                 int userId = Integer.valueOf(etUserId.getText().toString());
-//                DatabaseInterface db = new DatabaseInterface(userId, "GNDN");
+
                 // store user info if checkbox is checked
+
                 boolean userWithGivenIdExist = true;
                 if (userWithGivenIdExist) {
                     if (chkRememberMe.isChecked()) {
@@ -75,6 +76,9 @@ public class LoginActivity extends Activity {
                             break;
                         case 43:
                             user = new User(userId, "Watcher", "");
+                            break;
+                        case 51:
+                            user = new User(51, "TheLofts", "hardcoded");
                             break;
                     }
 

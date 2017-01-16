@@ -1,8 +1,10 @@
 package vresky.billings.huron;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,7 +61,7 @@ public class StatusAdapter extends BaseAdapter {
         }
 
         final TextView tvString = (TextView) view.findViewById(R.id.contact_rv_tv_name);
-        Button btnDelete = (Button) view.findViewById(R.id.contact_rv_btn_delete);
+        Button btnDelete = (Button) view.findViewById(R.id.btn_delete);
 
         tvString.setText(statusList.get(position));
 
@@ -73,14 +75,39 @@ public class StatusAdapter extends BaseAdapter {
                 Drawable drawable = containerLayout.getBackground();
                 ColorDrawable bg = (ColorDrawable)drawable;
 
-                if (bg.getColor() == UpdateStatusActivity.getStatusColor()) {
+                if (bg != null && bg.getColor() == UpdateStatusActivity.getStatusColor()) {
                     Toast.makeText(context, "Cannot delete active status", Toast.LENGTH_SHORT).show();
                 } else {
-                    statusList.remove(position);
-                    notifyDataSetChanged();
+                    // prompt user for confirmation of delete action
+                    // prompt user for delete confirmation.
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+                    alertDialogBuilder.setTitle("Delete Status?")
+                            .setMessage(context.getResources().getString(R.string.delete_confirmation_message, "this status"))
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    deleteStatus(position);
+                                }
+                            })
+                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog deleteConfirmationDialog = alertDialogBuilder.create();
+                    deleteConfirmationDialog.show();
                 }
             }
         });
         return view;
+    }
+
+    // doing this in a method allows the dialog to return before carrying out any action
+    // additionally, calling remove form within onClick directly crashes the app
+    private void deleteStatus(int position) {
+        statusList.remove(position);
+        notifyDataSetChanged();
     }
 }

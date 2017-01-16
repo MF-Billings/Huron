@@ -13,7 +13,6 @@ import java.util.ArrayList;
  * Created by Patrick on 04/01/2017
  * Parses JSON, populates InfoBundle objects, and adds them to an arraylist.
  */
-// TODO handle the case where the data coming from Location is null
 public class JSONtoArrayList {
 
     /**
@@ -37,9 +36,16 @@ public class JSONtoArrayList {
                 int contactID = contact.getInt("userid");
                 String contactName = contact.getString("username");
                 location = new Location("contact");
-                location.setLatitude(contact.getDouble("latitude"));
-                location.setLongitude(contact.getDouble("longitude"));
-                location.setTime(contact.getLong("tstamp"));
+                // replace with regex if there's time
+                if (contact.get("latitude") != JSONObject.NULL) {
+                    location.setLatitude(contact.getDouble("latitude"));
+                }
+                if (contact.get("longitude") != JSONObject.NULL) {
+                    location.setLongitude(contact.getDouble("longitude"));
+                }
+                if (contact.get("tstamp") != JSONObject.NULL) {
+                    location.setTime(contact.getLong("tstamp"));
+                }
                 String status = contact.getString("status");
 
                 infoBundle = new InfoBundle(contactID, contactName, location, status);

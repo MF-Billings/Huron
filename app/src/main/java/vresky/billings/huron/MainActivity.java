@@ -28,7 +28,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -48,6 +47,11 @@ import vresky.billings.huron.Database.DatabaseInterface;
 /* NOTE Because of the inability of the emulator to regularly update the location there are certain
     issues that occur when running the app on an emulator
 
+    - for some reason the blue dot that normally appears to indicate the user's position will not
+    appear until the map coordinates are sent to the device, through the extended controls for instance.
+    A result of this is that the button in the top-right corner of the map that moves the camera to
+    the user's current position will not work.
+
     - when location permission is requested upon running the app, the map does not receive the
     coordinates of the users location, and while the MyLocation button will de displayed in the
     upper right, it will not relocate the camera and marker to the user's current location
@@ -55,12 +59,6 @@ import vresky.billings.huron.Database.DatabaseInterface;
     - toggling the tracking using the action button in the toolbar removes the marker but does not
     replace it when run in the emulator
  */
-// TODO location markers not altered on registration, sign in, sign out
-// TODO hide contact locations if the user isn't showing theirs
-// TODO show contacts on map if the contact if the user returns to the map in the same session they added the contact in
-    // onCreate not called after dialog activities
-// TODO system breaks if user doesn't have a status when they register
-// TODO what's a user's status when they first log in?
 public class MainActivity extends AppCompatActivity implements
         OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -68,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements
         LocationListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    public static boolean trackingIsEnabled = true;          // true if the user's location is currently being recorded
+    public static boolean trackingIsEnabled;          // true if the user's location is currently being recorded
 
     private final int REGISTER_REQUEST = 1;
     private final int LOGIN_REQUEST = 2;
@@ -115,21 +113,22 @@ public class MainActivity extends AppCompatActivity implements
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        MapsInitializer.initialize(getApplicationContext());        // allow use of BitmapDescriptorFactory
         buildGoogleApiClient();
         mGoogleApiClient.connect();
         createLocationRequest();
 
+        trackingIsEnabled = true;           // gotta do it somewhere!
         // DEBUG
-        user = new User(51, "TheLofts51", "test status");
+//        user = new User(51, "TheLofts51", "test status");
 //        user = new User(43, "test", "test status");
-//        db = new DatabaseInterface(user.getUserId(), "GNDN");
         db = DatabaseInterface.getInstance();
-        //
+        user = User.getInstance();
+        user.setUserId(51);
+        user.setUsername("TheLofts51");
+        user.setStatus("test status");
 
         // determine if user is registered
         if (user == null) {
-            user = new User();
             // get user id if one exists
             prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
             int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), User.USER_ID_NOT_FOUND);
@@ -139,11 +138,8 @@ public class MainActivity extends AppCompatActivity implements
                 // ?
             }
         }
-
-        // retrieve contacts list to display on map
-        List<Contact> contactsList = Helper.retrieveContacts(TAG, user, db);
-        for (Contact c : contactsList) {
-            mapContacts.add(new ContactMapWrapper(c));
+        else {
+            populateUsersContactList();
         }
     }
 
@@ -158,6 +154,11 @@ public class MainActivity extends AppCompatActivity implements
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "In onResume");
+        // update map to reflect any changes in contact list
+        // need this for when onMapReady is not called upon resuming the activity, ie. when an activity is displayed as a dialog
+        if (mMap != null && trackingIsEnabled) {
+            updateContactLocations();
+        }
     }
 
     @Override
@@ -176,48 +177,34 @@ public class MainActivity extends AppCompatActivity implements
 
     // MAP  ----------------------------------------------------------------------------------------
 
-    // called when getMapAsync returns; map is ready to be used
+    // called when getMapAsync returns; map is ready to be used.
     @Override
     @SuppressWarnings("MissingPermission")
     public void onMapReady(GoogleMap map) {
         mMap = map;
 
+        // Turn on the My Location layer and the related control on the map.
+        updateLocationUI();
+
+        // this point should only be reached if the location tracking permission has been granted
         if (mCurrentLocation != null) {
             LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());    // maybe add default zoom?
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
 
             // display my-location layer  data, namely the my-location button
             // TEST
-            if (mLocationPermissionGranted) {
-                mMap.setMyLocationEnabled(true);
-                mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+            mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
-                // send location info on initialization to server
-                if (user.isRegistered()) {
-                    db.setUserInfo(user.getUserId(), latLng.latitude, latLng.longitude, mCurrentLocation.getTime(), "");
-
-                    // display contacts location to the user on the map
-                    for (ContactMapWrapper c : mapContacts) {
-                        LatLng contactLatLng = new LatLng(c.getContact().getLocation().getLatitude(),
-                                c.getContact().getLocation().getLongitude());
-                        c.setMarker(mMap.addMarker(new MarkerOptions()
-                                .position(contactLatLng)
-                                .title(c.getContact().getName())
-                        ));
-                        // include contact status if they have one
-                        if (!c.getContact().getStatus().equals("")) {
-                            c.getMarker().setSnippet(c.getContact().getStatus());
-                        }
-                        // display marker info automatically
-                        c.getMarker().showInfoWindow();
-                    }
-                }
+            // send location info on initialization to server and display contacts
+            if (user != null && user.isRegistered() && trackingIsEnabled) {
+                db.setUserInfo(user.getUserId(), latLng.latitude, latLng.longitude, mCurrentLocation.getTime(), "");
+                updateContactLocations();
             }
             Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude + "\n"
                 + "Time: " + mCurrentLocation.getTime());
         } else {
             Log.d(TAG, "Current location is null. Using default location.");
-//            mCurrentLocationMarker = mMap.addMarker(new MarkerOptions().position(mDefaultLocation));
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
         }
     }
@@ -262,27 +249,28 @@ public class MainActivity extends AppCompatActivity implements
         // get last-known location of device and register for location updates
         if (mLocationPermissionGranted) {
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            enableTracking();
+
+            if (trackingIsEnabled) {
+                // enables location updates as well as setting the tracking boolean
+                enableTracking();
+            }
         }
     }
 
     // handle callback when the location changes
     @Override
     public void onLocationChanged(Location location) {
-        if (trackingIsEnabled) {
+        if (trackingIsEnabled && mLocationPermissionGranted) {
             mCurrentLocation = location;
             // update location marker for user
             if (mMap != null) {
                 // update server info given proper conditions
-                // trackingIsEnabled is always true??
                 if (trackingIsEnabled && user.isRegistered()) {
                     String result = db.setUserInfo(user.getUserId(), location.getLatitude(), location.getLongitude(),
                             location.getTime(), user.getStatus());
 
                     if (result.equals("error")) {
                         Log.e(TAG, "setUserInfo failed at onLocationChanged");
-                    } else {
-
                     }
                 }
                 Log.d(TAG, "Current LatLng: " + location.getLatitude() + ", " + location.getLongitude() + "\n"
@@ -309,6 +297,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     // get map fragment handle and register for the map callback
+    // called when the activity is resumed
     @Override
     public void onConnected(Bundle connectionHint) {
         getDeviceLocation();
@@ -365,6 +354,47 @@ public class MainActivity extends AppCompatActivity implements
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
+    private void populateUsersContactList() {
+        List<Contact> contactsList = Helper.retrieveContacts(TAG, user, db);
+
+        if (user.getContacts().isEmpty()) {
+            for (Contact c : contactsList) {
+                user.getContacts().add(c);
+            }
+        } else {
+            Log.d(TAG, "User contacts list was expected to be empty on app load but contained contacts");
+        }
+    }
+
+    private void updateContactLocations() {
+        if (mMap != null) {
+            // remove any contacts that might be stored which do not belong to the user
+            for (ContactMapWrapper wrapper : mapContacts) {
+                wrapper.wipe();
+            }
+            mapContacts.clear();
+
+            // retrieve contacts list to display on map
+            List<Contact> contactsList = Helper.retrieveContacts(TAG, user, db);
+            for (Contact c : contactsList) {
+                mapContacts.add(new ContactMapWrapper(c));
+            }
+            // display contacts location to the user on the map
+            for (ContactMapWrapper c : mapContacts) {
+                LatLng contactLatLng = new LatLng(c.getContact().getLocation().getLatitude(),
+                        c.getContact().getLocation().getLongitude());
+                c.setMarker(mMap.addMarker(new MarkerOptions()
+                        .position(contactLatLng)
+                        .title(c.getContact().getName())
+                ));
+                // include contact status, if one exists
+                if (!c.getContact().getStatus().equals("")) {
+                    c.getMarker().setSnippet(c.getContact().getStatus());
+                }
+            }
+        }
+    }
+
     // METHODS -------------------------------------------------------------------------------------
 
     @SuppressWarnings("MissingPermission")
@@ -373,14 +403,33 @@ public class MainActivity extends AppCompatActivity implements
 //        mCurrentLocationMarker.remove();
 //        updateLocationUI();
         trackingIsEnabled = false;
+        // hide contact information from user (friendship's a 2-way street!)
+        for (ContactMapWrapper w : mapContacts) {
+            w.wipe();
+        }
+
         Log.d(TAG, getResources().getString(R.string.DEBUG_TRACKING_STATUS,
                 (trackingIsEnabled) ? "enabled" : "disabled"));
     }
-    // might need to also place marker
+
     @SuppressWarnings("MissingPermission")
     private void enableTracking() {
         if (mLocationPermissionGranted) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            // update user's location when tracking is re-enabled to try and
+            // discourage position anonymity created by toggling the tracking control without moving
+
+            // show contact information on map
+            // used when tracking is enabled outside of initial app start-up
+            if (mMap != null) {
+                mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+                if (user != null) {
+                    db.setUserInfo(user.getUserId(), mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(),
+                            mCurrentLocation.getTime(), user.getStatus());
+                    updateContactLocations();
+                }
+            }
             trackingIsEnabled = true;
             Log.d(TAG, getResources().getString(R.string.DEBUG_TRACKING_STATUS,
                     (trackingIsEnabled) ? "enabled" : "disabled"));
@@ -398,7 +447,7 @@ public class MainActivity extends AppCompatActivity implements
                     user = (User) obj;
                 }
                 // remove registration action
-                // DEBUG remove
+                // DEBUG put this back when testing requiring frequent use of different users is done
 //                if (optionsMenu != null) {
 //                    MenuItem item = optionsMenu.findItem(R.id.action_register);
 //                    item.setVisible(false);
@@ -439,8 +488,8 @@ public class MainActivity extends AppCompatActivity implements
         switch (item.getItemId()) {
             case R.id.action_manage_contacts:
                 intent = new Intent(this, ManageContactsActivity.class);
-                intent.putExtra(getResources().getString(R.string.KEY_USER), user);
-                intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
+//                intent.putExtra(getResources().getString(R.string.KEY_USER), user);
+//                intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
                 startActivity(intent);
                 break;
             // the eye button
@@ -486,6 +535,10 @@ public class MainActivity extends AppCompatActivity implements
             case R.id.action_debug_get_user_info:
                 if (user != null)
                     Log.d(TAG, user.toString());
+                break;
+            case R.id.action_debug_logout:
+                user = null;
+                Log.d(TAG, "User is now " + ((user == null) ? user : user.toString()));
                 break;
             default:
                 result = false;
