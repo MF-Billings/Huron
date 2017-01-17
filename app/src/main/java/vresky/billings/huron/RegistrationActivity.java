@@ -1,7 +1,6 @@
 package vresky.billings.huron;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,6 +8,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 import vresky.billings.huron.Database.DatabaseInterface;
 
@@ -71,12 +72,8 @@ public class RegistrationActivity extends Activity {
                             user.setUserId(Integer.valueOf(result));
                             user.setStatus("test status");
                             user.setUsername(userName);
+                            user.setContacts(new ArrayList<Contact>());
                         }
-                        // DEBUG don't think I need this anymore
-//                        else {
-//                            user = new User(Integer.valueOf(result), userName, "test status");
-//                        }
-
                         // store user data
 //                        SharedPreferences prefs = getSharedPreferences(
 //                                getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
@@ -85,7 +82,7 @@ public class RegistrationActivity extends Activity {
 //                        prefsEditor.putString(getResources().getString(R.string.KEY_USERNAME), userName);
 //                        prefsEditor.apply();
                         registrationIsSuccessful = true;
-                        Log.i(TAG, "user with id " + user.getUserId() + "added");
+                        Log.i(TAG, "user with id " + user.getUserId() + " added");
                     } else {
                         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
                         Log.e(TAG, "User could not be added to database" + stackTraceElements.toString());
@@ -95,10 +92,8 @@ public class RegistrationActivity extends Activity {
                 }
 
                 if (registrationIsSuccessful) {
-                    // return user object
-                    Intent intent = new Intent();
-                    intent.putExtra(getResources().getString(R.string.KEY_USER), user);
-                    setResult(RESULT_OK, intent);
+                    // indicate the registration was successful
+                    setResult(RESULT_OK);
                 }
                 finish();
             }

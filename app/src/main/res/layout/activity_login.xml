@@ -16,11 +16,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/your_user_id_message"/>
-        <CheckBox
-            android:id="@+id/chk_remember_me"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/remember_me_message"/>
+        <!--<CheckBox-->
+            <!--android:id="@+id/chk_remember_me"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="@string/remember_me_message"/>-->
     </LinearLayout>
 
     <LinearLayout

@@ -1,7 +1,6 @@
 package vresky.billings.huron;
 
 import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -10,7 +9,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateFormat;
@@ -31,7 +29,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
@@ -67,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements
 
     private static final String TAG = MainActivity.class.getSimpleName();
     public static boolean trackingIsEnabled;          // true if the user's location is currently being recorded
+    public static boolean userIsLoggedIn;
+    public static boolean mapUpdated;                   // prevent cases where more than 1 map function might call the same function when it's not necessary
 
     private final int REGISTER_REQUEST = 1;
     private final int LOGIN_REQUEST = 2;
@@ -90,11 +89,6 @@ public class MainActivity extends AppCompatActivity implements
 
     // The geographical location where the device is currently located.
     private Location mCurrentLocation;
-    private Marker mCurrentLocationMarker;
-    private MarkerOptions mMarkerOptions;
-
-    //private CameraPosition mCameraPosition;
-
     // The entry point to Google Play services, used by the Places API and Fused Location Provider.
     private GoogleApiClient mGoogleApiClient;
     // A request object to store parameters for requests to the FusedLocationProviderApi.
@@ -118,14 +112,13 @@ public class MainActivity extends AppCompatActivity implements
         createLocationRequest();
 
         trackingIsEnabled = true;           // gotta do it somewhere!
-        // DEBUG
-//        user = new User(51, "TheLofts51", "test status");
-//        user = new User(43, "test", "test status");
         db = DatabaseInterface.getInstance();
+        // DEBUG
         user = User.getInstance();
-        user.setUserId(51);
-        user.setUsername("TheLofts51");
-        user.setStatus("test status");
+        user.setUserId(20);
+        user.setUsername("20");
+        user.setStatus("current default user account");
+        userIsLoggedIn = true;
 
         // determine if user is registered
         if (user == null) {
@@ -133,7 +126,6 @@ public class MainActivity extends AppCompatActivity implements
             prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
             int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), User.USER_ID_NOT_FOUND);
             // user has already registered
-            // it matters what constructor is called
             if (userId == User.USER_ID_NOT_FOUND) {
                 // ?
             }
@@ -156,14 +148,17 @@ public class MainActivity extends AppCompatActivity implements
         Log.d(TAG, "In onResume");
         // update map to reflect any changes in contact list
         // need this for when onMapReady is not called upon resuming the activity, ie. when an activity is displayed as a dialog
-        if (mMap != null && trackingIsEnabled) {
+        if (mMap != null && user != null && trackingIsEnabled) {
+            // TODO post info
             updateContactLocations();
+            mapUpdated = true;
         }
     }
 
     @Override
     protected void onPause() {
         Log.d(TAG, "Before super.onPause");
+        mapUpdated = false;
         super.onPause();
         Log.d(TAG, "After super.onPause");
     }
@@ -183,6 +178,10 @@ public class MainActivity extends AppCompatActivity implements
     public void onMapReady(GoogleMap map) {
         mMap = map;
 
+        // someone logged in at some point when the app was in the foreground
+        if (user != null) {
+            user = User.getInstance();
+        }
         // Turn on the My Location layer and the related control on the map.
         updateLocationUI();
 
@@ -229,22 +228,9 @@ public class MainActivity extends AppCompatActivity implements
         }
         // display rationale to user as to why location tracking is necessary and prompt user for permission
         else {
-            // create and display simple dialog
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-            alertDialogBuilder.setTitle("Location tracking required")
-                    .setMessage(getResources().getString(R.string.location_permission_rationale))
-                    .setPositiveButton("OKAY", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
-                    ActivityCompat.requestPermissions(MainActivity.this,
+            ActivityCompat.requestPermissions(MainActivity.this,
                             new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
                             PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-                }
-            });
-
-            AlertDialog rationaleDialog = alertDialogBuilder.create();
-            rationaleDialog.show();
         }
         // get last-known location of device and register for location updates
         if (mLocationPermissionGranted) {
@@ -264,17 +250,18 @@ public class MainActivity extends AppCompatActivity implements
             mCurrentLocation = location;
             // update location marker for user
             if (mMap != null) {
-                // update server info given proper conditions
-                if (trackingIsEnabled && user.isRegistered()) {
+                // update server info
+                if (user.isRegistered()) {
                     String result = db.setUserInfo(user.getUserId(), location.getLatitude(), location.getLongitude(),
                             location.getTime(), user.getStatus());
 
                     if (result.equals("error")) {
-                        Log.e(TAG, "setUserInfo failed at onLocationChanged");
+                        Log.d(TAG, "setUserInfo failed at onLocationChanged");
                     }
                 }
-                Log.d(TAG, "Current LatLng: " + location.getLatitude() + ", " + location.getLongitude() + "\n"
-                        + "Time: " + DateFormat.format("dd-MM-yyyy", mCurrentLocation.getTime()));
+                Log.i(TAG, "Current LatLng: " + location.getLatitude() + ", " + location.getLongitude() + "\n"
+                        + "Time: " + DateFormat.format("dd-MM-yyyy", mCurrentLocation.getTime()) + "\n"
+                        +  ((user.isRegistered()) ? "User data updated server-side" : ""));
             }
         }
     }
@@ -366,8 +353,12 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    /**
+     * Update the contact data displayed on the map.
+     */
     private void updateContactLocations() {
         if (mMap != null) {
+            String markerSnippetString;
             // remove any contacts that might be stored which do not belong to the user
             for (ContactMapWrapper wrapper : mapContacts) {
                 wrapper.wipe();
@@ -375,7 +366,8 @@ public class MainActivity extends AppCompatActivity implements
             mapContacts.clear();
 
             // retrieve contacts list to display on map
-            List<Contact> contactsList = Helper.retrieveContacts(TAG, user, db);
+            user.setContacts(Helper.retrieveContacts(TAG, user, db));
+            List<Contact> contactsList = user.getContacts();
             for (Contact c : contactsList) {
                 mapContacts.add(new ContactMapWrapper(c));
             }
@@ -387,10 +379,18 @@ public class MainActivity extends AppCompatActivity implements
                         .position(contactLatLng)
                         .title(c.getContact().getName())
                 ));
+
+                markerSnippetString = "";
                 // include contact status, if one exists
                 if (!c.getContact().getStatus().equals("")) {
-                    c.getMarker().setSnippet(c.getContact().getStatus());
+                    markerSnippetString = c.getContact().getStatus() + " - ";
                 }
+                // add the time the contact data was last updated to the snippet
+                // convert time in milliseconds to human-readable format
+                String timeOfLastUpdate = (String)DateFormat.format("HH:mm", c.getContact().getLocation().getTime());
+                markerSnippetString += "last updated at " + timeOfLastUpdate;
+
+                c.getMarker().setSnippet(markerSnippetString);
             }
         }
     }
@@ -400,15 +400,13 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressWarnings("MissingPermission")
     private void disableTracking() {
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-//        mCurrentLocationMarker.remove();
-//        updateLocationUI();
         trackingIsEnabled = false;
         // hide contact information from user (friendship's a 2-way street!)
         for (ContactMapWrapper w : mapContacts) {
             w.wipe();
         }
 
-        Log.d(TAG, getResources().getString(R.string.DEBUG_TRACKING_STATUS,
+        Log.i(TAG, getResources().getString(R.string.DEBUG_TRACKING_STATUS,
                 (trackingIsEnabled) ? "enabled" : "disabled"));
     }
 
@@ -431,21 +429,69 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
             trackingIsEnabled = true;
-            Log.d(TAG, getResources().getString(R.string.DEBUG_TRACKING_STATUS,
+            Log.i(TAG, getResources().getString(R.string.DEBUG_TRACKING_STATUS,
                     (trackingIsEnabled) ? "enabled" : "disabled"));
         }
     }
 
+    private void logout() {
+        userIsLoggedIn = false;
+        user = null;
+        // clear all contact info from mapContacts and remove markers
+        for (ContactMapWrapper w : mapContacts) {
+            w.wipe();
+        }
+        mapContacts.clear();
+        disableTracking();
+        updateOptionsMenu();
+    }
+
+    private void login() {
+        user = User.getInstance();
+        userIsLoggedIn = true;
+        updateContactLocations();
+        enableTracking();
+        updateOptionsMenu();
+        Toast.makeText(this, "Logged in as " + user.getUsername(), Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateOptionsMenu() {
+        if (optionsMenu != null) {
+            MenuItem manageContactsAction = optionsMenu.findItem(R.id.action_manage_contacts);
+            MenuItem updateStatusAction = optionsMenu.findItem(R.id.action_update_status);
+            MenuItem logoutAction = optionsMenu.findItem(R.id.action_logout);
+            MenuItem updateMapAction = optionsMenu.findItem(R.id.action_update_map);
+            MenuItem registerAction = optionsMenu.findItem(R.id.action_register);
+            MenuItem loginAction = optionsMenu.findItem(R.id.action_login);
+            MenuItem getInfoAction = optionsMenu.findItem(R.id.action_get_user_info);
+
+            if (userIsLoggedIn) {
+                manageContactsAction.setVisible(true);
+                updateStatusAction.setVisible(true);
+                logoutAction.setVisible(true);
+                updateMapAction.setVisible(true);
+                getInfoAction.setVisible(true);
+                registerAction.setVisible(false);
+                loginAction.setVisible(false);
+
+            }
+            else {
+                manageContactsAction.setVisible(false);
+                updateStatusAction.setVisible(false);
+                logoutAction.setVisible(false);
+                updateMapAction.setVisible(false);
+                // DEBUG
+//                getInfoAction.setVisible(false);
+                registerAction.setVisible(true);
+                loginAction.setVisible(true);
+            }
+        }
+    }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REGISTER_REQUEST) {
             if (resultCode == RESULT_OK) {
                 // successful registration
-                // store user
-                Object obj = data.getSerializableExtra(getResources().getString(R.string.KEY_USER));
-                if (obj instanceof User) {
-                    user = (User) obj;
-                }
                 // remove registration action
                 // DEBUG put this back when testing requiring frequent use of different users is done
 //                if (optionsMenu != null) {
@@ -456,10 +502,7 @@ public class MainActivity extends AppCompatActivity implements
             }
         } else if (requestCode == LOGIN_REQUEST) {
             if (resultCode == RESULT_OK) {
-                Object obj = data.getSerializableExtra(getResources().getString(R.string.KEY_USER));
-                if (obj instanceof User) {
-                    user = (User) obj;
-                }
+                login();
             }
         }
     }
@@ -473,11 +516,13 @@ public class MainActivity extends AppCompatActivity implements
         inflater.inflate(R.menu.main_menu, menu);
         // hide registration option if an existing user id is stored
         // DEBUG remove
-//        if (user.isRegistered()) {
+        if (user != null && user.isRegistered()) {
 //            MenuItem item = menu.findItem(R.id.action_register);
 //            item.setVisible(false);
 //            invalidateOptionsMenu();
-//        }
+        }
+        optionsMenu = menu;
+        updateOptionsMenu();
         return true;
     }
 
@@ -486,12 +531,6 @@ public class MainActivity extends AppCompatActivity implements
         boolean result = true;
         Intent intent;
         switch (item.getItemId()) {
-            case R.id.action_manage_contacts:
-                intent = new Intent(this, ManageContactsActivity.class);
-//                intent.putExtra(getResources().getString(R.string.KEY_USER), user);
-//                intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
-                startActivity(intent);
-                break;
             // the eye button
             case R.id.action_toggle_tracking_visibility:
                 // toggle user location tracking
@@ -506,19 +545,24 @@ public class MainActivity extends AppCompatActivity implements
                 Toast.makeText(this, "Tracking " + ((trackingIsEnabled) ? "enabled" : "disabled"),
                         Toast.LENGTH_SHORT).show();
                 break;
+            case R.id.action_update_map:
+                // get the most recent contact data and update the server-side user data
+                db.setUserInfo(user.getUserId(), mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(),
+                    mCurrentLocation.getTime(), user.getStatus());
+                updateContactLocations();
+                break;
+            case R.id.action_manage_contacts:
+                intent = new Intent(this, ManageContactsActivity.class);
+                startActivity(intent);
+                break;
             case R.id.action_update_status:
                 intent = new Intent(this, UpdateStatusActivity.class);
-                if (user.isRegistered()) {
-                    intent.putExtra(getResources().getString(R.string.KEY_USER), user);
-                }
                 startActivity(intent);
                 break;
             case R.id.action_register:
                 // only allow registration if user doesn't have a user id
 //                if (!user.isRegistered()) {
                     intent = new Intent(this, RegistrationActivity.class);
-                    intent.putExtra(getResources().getString(R.string.KEY_USER), user);
-//                    intent.putExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ), db);
                     startActivityForResult(intent, REGISTER_REQUEST);
 //                }
                 break;
@@ -526,19 +570,20 @@ public class MainActivity extends AppCompatActivity implements
                 intent = new Intent(this, LoginActivity.class);
                 startActivityForResult(intent, LOGIN_REQUEST);
                 break;
-            case R.id.action_settings:
-                intent = new Intent(this, SettingsActivity.class);
-                intent.putExtra(getResources().getString(R.string.KEY_USER), user);
-                startActivity(intent);
-                break;
-            // DEBUG
-            case R.id.action_debug_get_user_info:
-                if (user != null)
+            case R.id.action_get_user_info:
+                if (user != null) {
+                    Toast.makeText(MainActivity.this, ((user == null) ? "You are not currently logged in" : user.toString()), Toast.LENGTH_LONG).show();
                     Log.d(TAG, user.toString());
+                }
                 break;
-            case R.id.action_debug_logout:
-                user = null;
-                Log.d(TAG, "User is now " + ((user == null) ? user : user.toString()));
+            case R.id.action_logout:
+                Log.d(TAG, "Logged in user:\n" + ((user == null) ? "null" : user.toString()));
+                if (user != null) {
+                    logout();
+                    Toast.makeText(MainActivity.this, "You are now logged out", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "You have already logged out", Toast.LENGTH_SHORT).show();
+                }
                 break;
             default:
                 result = false;

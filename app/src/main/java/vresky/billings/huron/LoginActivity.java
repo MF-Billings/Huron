@@ -1,13 +1,12 @@
 package vresky.billings.huron;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import vresky.billings.huron.Database.DatabaseInterface;
 
@@ -27,7 +26,7 @@ public class LoginActivity extends Activity {
         db = DatabaseInterface.getInstance();
 
         final EditText etUserId = (EditText)findViewById(R.id.et_user_id);
-        final CheckBox chkRememberMe = (CheckBox)findViewById(R.id.chk_remember_me);
+//        final CheckBox chkRememberMe = (CheckBox)findViewById(R.id.chk_remember_me);
         Button btnLogin = (Button)findViewById(R.id.btn_login);
         Button btnCancel = (Button)findViewById(R.id.btn_cancel);
 
@@ -50,43 +49,45 @@ public class LoginActivity extends Activity {
 
                 boolean userWithGivenIdExist = true;
                 if (userWithGivenIdExist) {
-                    if (chkRememberMe.isChecked()) {
-                        // store user data
-//                    SharedPreferences prefs = getSharedPreferences(
-//                            getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
-//                    SharedPreferences.Editor prefsEditor = prefs.edit();
-//                    prefsEditor.putInt(getResources().getString(R.string.KEY_USER_ID), userAccount.getUserId());
-//                    prefsEditor.putString(getResources().getString(R.string.KEY_USERNAME), userAccount.getUsername());
-//                    prefsEditor.apply();
-//                    Log.i(TAG, "user with id " + userAccount.getUserId() + "added");
-                    }
-                    // Tycho id = 34 - has no position at this point
-                    // TestAdd id = 42
-                    // some1 w/ above as contacts id = 43 at 43.1209, -79.2504 location??
-                    // 51 has TestAdd at Brock as contact
-                    //user = new User(51, "TheLofts51", "test status");
+                    // JJ id 1
+                    // Bj id 2
+                    // TheLofts id 4
                     // DEBUG for testing different user's without server support
                     User user = null;
+
+                    // client-side login for demonstrative purposes
+//                    int maxNumberOfAccounts = 4;
+//                    String[] userNames = new String[maxNumberOfAccounts];
+//                    for (int i = 0; i < maxNumberOfAccounts; i++) {
+//                        userNames[i] = "PLACEHOLDER!";
+//                    }
+//                    for (int i = 0; i < maxNumberOfAccounts; i++) {
+//                        if (userId == i) {
+//                            user.setUserId(i);
+//                            user.setUsername(userNames[i]);
+//                            user.setStatus("");
+//                            user.setContacts(new ArrayList<Contact>());
+//                            break;
+//                        }
+//                    }
                     switch (userId) {
-                        case 34:
-                            user = new User(userId, "Tycho", "");
+                        case 1:
+                            user = new User(userId, "JJ", "chillin'");
                             break;
-                        case 42:
-                            user = new User(userId, "TestAdd", "");
+                        case 6:
+                            user = new User(userId, "Ken", "staying calm");
                             break;
-                        case 43:
-                            user = new User(userId, "Watcher", "");
-                            break;
-                        case 51:
-                            user = new User(51, "TheLofts", "hardcoded");
+                        case 20:
+                            user = new User(userId, "20", "following myself");
                             break;
                     }
 
                     if (user != null) {
-                        Intent intent = new Intent();
-                        intent.putExtra(getResources().getString(R.string.KEY_USER), user);
-                        setResult(RESULT_OK, intent);
+                        setResult(RESULT_OK);
                         Log.i(TAG, String.format("Logged in as user %s with id %d", user.getUsername(), user.getUserId()));
+                    } else {
+                        // display message to user that no one with that account number could be found
+                        Toast.makeText(LoginActivity.this, "user with id " + userId + " does not exist", Toast.LENGTH_SHORT).show();
                     }
                 }
                 finish();

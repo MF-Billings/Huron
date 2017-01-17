@@ -15,6 +15,7 @@
     <string name="delete_literal">Delete</string>
     <string name="deleted_literal">Deleted</string>
     <string name="edit_literal">Edit</string>
+    <string name="get_user_info_camel_literal">Get User Info</string>
     <string name="location_permission_rationale">
         In order to show the location of you and your contacts on the map, this app requires
         you to grant location access.  Without this the app can\'t help you get in touch with
@@ -28,15 +29,15 @@
     <string name="statuses_literal">Statuses</string>
     <string name="contact_parcel_key">contact</string>
     <string name="login_camel_literal">Login</string>
+    <string name="logout_camel_literal">Logout</string>
     <string name="register_camel_literal">Register</string>
     <string name="register_rationale">In order use all the features of this app you need to register
         for an account.</string>
     <string name="remember_me_message">Remember me</string>
     <string name="settings">Settings</string>
     <string name="toggle_tracking">Toggle tracking</string>
-
     <string name="undo_literal">undo</string>
-    <string name="update_status">Update status</string>
+    <string name="update_map_info_message">Update map info</string>
     <string name="username_literal">Your desired username</string>
     <string name="your_user_id_message">Your user id</string>
 

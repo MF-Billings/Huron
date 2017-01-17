@@ -1,6 +1,7 @@
 package vresky.billings.huron;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -35,13 +36,14 @@ public class UpdateStatusActivity extends AppCompatActivity {
     private final String TAG = this.getClass().getSimpleName();
     private static int selected_status_color = Color.CYAN;
     private static final int ADD_STATUS_REQUEST = 1;
+    private static final String KEY_SAVED_STATUS_INDEX = "Selected Index";
 
     private List<String> statusList;
     private StatusAdapter statusAdapter;            // easily call adapter notify functions
     private ListView lvStatus;
     private View selectedListItem;
     private User user;
-    private int selectedListItemIndex;
+    private int selectedListItemIndex = -1;         // -1 used when no item has been selected
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,13 +51,7 @@ public class UpdateStatusActivity extends AppCompatActivity {
         setContentView(R.layout.activity_update_status);
 
         statusList = new ArrayList<>();
-        Object obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
-        if (obj instanceof User) {
-            user = (User)obj;
-        } else {
-            StackTraceElement[] stackTraceElement = Thread.currentThread().getStackTrace();
-            Log.e(TAG, "Cannot cast object to user in " + stackTraceElement[0]);
-        }
+        user = User.getInstance();
 
         lvStatus = (ListView) findViewById(R.id.lv_statuses);
         Button btnAddStatus = (Button) findViewById(R.id.btn_add_status);
@@ -69,6 +65,12 @@ public class UpdateStatusActivity extends AppCompatActivity {
         lvStatus.addHeaderView(statusListHeader);
         lvStatus.setAdapter(statusAdapter);
 
+        // not sure if I need this anymore
+        SharedPreferences prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG),
+                MODE_PRIVATE);
+        selectedListItemIndex = prefs.getInt(KEY_SAVED_STATUS_INDEX, -1);
+        //
+
         // LISTENERS
 
         lvStatus.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -77,6 +79,11 @@ public class UpdateStatusActivity extends AppCompatActivity {
                 view.findViewById(R.id.btn_delete);
                 // header offsets position by 1
                 int truePosition = position - 1;
+                // remove highlighting from "remembered" status when another item is clicked
+                // this section pertaining to the addition or removal of highlights could likely be made more succinct
+                if (StatusAdapter.selectedItem != null) {
+                    StatusAdapter.selectedItem.setBackgroundColor(Color.TRANSPARENT);
+                }
                 // turn off highlighting from previously selected item and enable selection on new item
                 if (selectedListItem == null) {
                     selectedListItem = view;
@@ -86,8 +93,8 @@ public class UpdateStatusActivity extends AppCompatActivity {
                 selectedListItemIndex = truePosition;
                 selectedListItem.setBackgroundColor(selected_status_color);
                 if (user != null) {
-                    user.setStatus(statusList.get(truePosition));
-                    Log.d(TAG, user.getStatus());
+                    user.setStatus(statusList.get(selectedListItemIndex));
+                    Log.d(TAG, "Set status to " + user.getStatus());
                 } else {
                     Log.d(TAG, "Cannot status " + statusList.get(truePosition) + " to null user");
                 }
@@ -102,8 +109,6 @@ public class UpdateStatusActivity extends AppCompatActivity {
             }
         });
 
-        //
-
         // read status list
         FileReader reader;
         BufferedReader bReader;
@@ -116,6 +121,7 @@ public class UpdateStatusActivity extends AppCompatActivity {
             }
             // DEBUG test list re-population with defaults
             if (statusList.isEmpty()) {
+                // TODO move the code from the catch to here?
                 throw new FileNotFoundException();
             }
             bReader.close();
@@ -154,7 +160,18 @@ public class UpdateStatusActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // give status selection persistence
+        // savedInstanceState seemingly can't be used at the use of the back button for ending the activity prevents that method from being called
+        SharedPreferences prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
+        prefs.edit().putInt(KEY_SAVED_STATUS_INDEX, selectedListItemIndex).apply();
+
+        // this is so that the status that was selected when the app last closed is not selected again on later runs
+        if (StatusAdapter.isFirstTimeRunning == true)
+            StatusAdapter.isFirstTimeRunning = false;
     }
+
+
 
     // used with startActivityForResult
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -169,9 +186,9 @@ public class UpdateStatusActivity extends AppCompatActivity {
                 if (data != null) {
                     errorMsg = data.getStringExtra(getResources().getString(R.string.KEY_INVALID_STATUS_EDIT));
                 }
-
                 if (errorMsg != null && !errorMsg.isEmpty()) {
                     Toast.makeText(UpdateStatusActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Status was not added due to " + ((errorMsg != null) ? errorMsg : "being empty"));
                 }
             }
         } else if (requestCode == getResources().getInteger(R.integer.MODIFY_STATUS_REQUEST)) {

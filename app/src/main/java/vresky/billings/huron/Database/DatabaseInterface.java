@@ -144,7 +144,8 @@ public class DatabaseInterface implements Serializable {
     /**
      * returns JSON encoded contact information
      * @param userID
-     * @return "null" if result set from database is empty, "error" on error
+     * @return Use to return "null" if result set from database is empty, "error" on error.  Now
+     * location data should return 0 if there is no value provided in the database for it.
      */
     public String getContactsInfo(int userID) {
         dbat = new DatabaseAsyncTask();
@@ -154,13 +155,6 @@ public class DatabaseInterface implements Serializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-/*
-        try {
-            this.wait(10000);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-*/
         return "error";
     }
 }

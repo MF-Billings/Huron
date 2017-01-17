@@ -2,36 +2,36 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_manage_contacts"
-        app:showAsAction="never"
-        android:title="@string/manage_contacts"/>
-    <item
         android:id="@+id/action_toggle_tracking_visibility"
         android:icon="@drawable/ic_visibility_black_24dp"
         app:showAsAction="always"
         android:title="@string/toggle_tracking"/>
-    <!--for testing; literally useless below here-->
+    <item
+        android:id="@+id/action_update_map"
+        android:icon="@drawable/ic_update_black_24dp"
+        android:title="@string/update_map_info_message"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_manage_contacts"
+        app:showAsAction="never"
+        android:title="@string/manage_contacts"/>
     <item
         android:id="@+id/action_update_status"
-        android:title="@string/update_status"
-        app:showAsAction="never"/>
-    <item
-        android:id="@+id/action_settings"
-        android:title="@string/settings"
+        android:title="Update status"
         app:showAsAction="never"/>
     <item
         android:id="@+id/action_login"
         android:title="Login"
         app:showAsAction="never"/>
     <item
+        android:id="@+id/action_logout"
+        android:title="@string/logout_camel_literal"/>
+    <item
         android:id="@+id/action_register"
         android:title="@string/register_camel_literal"
         app:showAsAction="never"/>
     <!--DEBUG delete or move these somewhere more appropriate-->
     <item
-        android:id="@+id/action_debug_get_user_info"
-        android:title="Get user info"/>
-    <item
-        android:id="@+id/action_debug_logout"
-        android:title="logout"/>
+        android:id="@+id/action_get_user_info"
+        android:title="@string/get_user_info_camel_literal"/>
 </menu>

@@ -5,7 +5,7 @@
         <item>Eating</item>
         <item>Leisure</item>
         <item>Busy</item>
-        <item>Killing time</item>
+        <!--<item>Killing time</item>-->
     </string-array>
     <string-array name="settings_zoom_level">
         <item>Buildings</item>

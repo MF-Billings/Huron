@@ -1,7 +1,6 @@
 package vresky.billings.huron;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,7 +12,7 @@ import vresky.billings.huron.Database.DatabaseInterface;
 
 /**
  * Created by Matt on 20/12/2016.
- * single fragment activity to contain the AddContactFragment
+ * Note that adding a contact results in the user being added to the specified contact's contact list as well
  */
 public class AddContactActivity extends Activity {
 
@@ -36,15 +35,6 @@ public class AddContactActivity extends Activity {
         db = DatabaseInterface.getInstance();
         user = User.getInstance();
 
-        // unmarshall intent extras
-        Object obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_DB_INTERFACE_OBJ));
-//        obj = getIntent().getSerializableExtra(getResources().getString(R.string.KEY_USER));
-//        if (obj instanceof User) {
-//            user = (User)obj;
-//        } else {
-//            Log.e(TAG, Thread.currentThread().getStackTrace()[0] + "Object cannot be cast to User");
-//        }
-
         // LISTENERS
 
         // return to Contacts activity
@@ -61,7 +51,6 @@ public class AddContactActivity extends Activity {
             public void onClick(View v) {
                 String operationUserFeedback = "";
                 String contactIdInput = etContactId.getText().toString();
-                Intent result = new Intent();
                 isValidInputId = true;
 
                 if (!contactIdInput.equals("")) {
@@ -73,8 +62,8 @@ public class AddContactActivity extends Activity {
                    if (user.isRegistered()) {
                        // the user shouldn't be able to add themselves as a contact
                        if (nContactIdInput == user.getUserId()) {
-                           operationUserFeedback = "You cannot add yourself as a contact";
-                           isValidInputId = false;
+//                           operationUserFeedback = "You cannot add yourself as a contact";
+//                           isValidInputId = false;
                        } else {
                            // the user shouldn't be able to add the same contact more than once
                            for (Contact c : user.getContacts()) {
@@ -97,7 +86,6 @@ public class AddContactActivity extends Activity {
                            else {
                                // replace contacts list
                                returnDataIsEmpty = false;
-                               result.putExtra("success", true);
                                operationUserFeedback = "Contact added";
                            }
                        }
@@ -112,9 +100,9 @@ public class AddContactActivity extends Activity {
 
                 // return contact data to ManageContactsActivity
                 if (!returnDataIsEmpty) {
-                    setResult(Activity.RESULT_OK, result);
+                    setResult(Activity.RESULT_OK);
                 } else {
-                    setResult(RESULT_CANCELED, result);
+                    setResult(RESULT_CANCELED);
                 }
                 finish();
             }

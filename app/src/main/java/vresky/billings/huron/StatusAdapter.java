@@ -2,6 +2,8 @@ package vresky.billings.huron;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AlertDialog;
@@ -25,6 +27,9 @@ public class StatusAdapter extends BaseAdapter {
     private final String TAG = this.getClass().toString();
     private Context context;
     private List<String> statusList;
+    static View selectedItem;
+    static boolean isFirstTimeRunning = true;
+
 
     public StatusAdapter(Context context, List<String> statusList) {
         super();
@@ -64,6 +69,20 @@ public class StatusAdapter extends BaseAdapter {
         Button btnDelete = (Button) view.findViewById(R.id.btn_delete);
 
         tvString.setText(statusList.get(position));
+
+        // highlight the item that was selected the last time the user was on the status activity this run
+        if (!isFirstTimeRunning) {
+            SharedPreferences prefs = context.getSharedPreferences(context.getResources().getString(R.string.APP_TAG), Context.MODE_PRIVATE);
+            int positionToSelect = prefs.getInt("Selected Index", -1);
+
+            if (positionToSelect != -1) {
+                view.setBackgroundColor(Color.TRANSPARENT);
+                if (position == positionToSelect) {
+                    view.setBackgroundColor(Color.CYAN);
+                    selectedItem = view;
+                }
+            }
+        }
 
         // LISTENERS
 
