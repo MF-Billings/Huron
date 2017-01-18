@@ -59,7 +59,10 @@
     <string name="KEY_INVALID_STATUS_EDIT">invalid status edit</string>
     <!--item position within the list-->
     <string name="KEY_ITEM_POSITION">item position</string>
+    <string name="KEY_LATITUDE">latitude</string>
+    <string name="KEY_LONGITUDE">longitude</string>
     <string name="KEY_CONTACT_STATUS">status</string>
+    <string name="KEY_TIMESTAMP">timestamp</string>
     <string name="KEY_USER">user</string>
     <!--the user's unique id which will be used by other users to add them as a contact-->
     <string name="KEY_USER_ID">user id</string>

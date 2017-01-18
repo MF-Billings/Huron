@@ -2,7 +2,6 @@ package vresky.billings.huron;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -25,24 +24,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import vresky.billings.huron.Database.DatabaseInterface;
+
 /**
  * Created by Matt on 21/12/2016.
- * updates status
+ * updates user status
  */
 // TODO check if status indicator saves
 // TODO add clear status widget
 public class UpdateStatusActivity extends AppCompatActivity {
 
     private final String TAG = this.getClass().getSimpleName();
-    private static int selected_status_color = Color.CYAN;
     private static final int ADD_STATUS_REQUEST = 1;
     private static final String KEY_SAVED_STATUS_INDEX = "Selected Index";
 
     private List<String> statusList;
     private StatusAdapter statusAdapter;            // easily call adapter notify functions
     private ListView lvStatus;
+    private DatabaseInterface db;
     private User user;
     private int selectedListItemIndex = -1;         // -1 used when no item has been selected
+    private double latitude, longitude;
+    private long timestamp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +53,7 @@ public class UpdateStatusActivity extends AppCompatActivity {
         setContentView(R.layout.activity_update_status);
 
         statusList = new ArrayList<>();
+        db = DatabaseInterface.getInstance();
         user = User.getInstance();
 
         lvStatus = (ListView) findViewById(R.id.lv_statuses);
@@ -70,6 +74,11 @@ public class UpdateStatusActivity extends AppCompatActivity {
         selectedListItemIndex = prefs.getInt(KEY_SAVED_STATUS_INDEX, -1);
         //
 
+        // check intent for location data
+        latitude = getIntent().getDoubleExtra(getResources().getString(R.string.KEY_LATITUDE), Integer.MAX_VALUE);
+        longitude = getIntent().getDoubleExtra(getResources().getString(R.string.KEY_LATITUDE), Integer.MAX_VALUE);
+        timestamp = getIntent().getLongExtra(getResources().getString(R.string.KEY_TIMESTAMP), -1);
+
         // LISTENERS
 
         lvStatus.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -83,6 +92,14 @@ public class UpdateStatusActivity extends AppCompatActivity {
                     selectedListItemIndex = truePosition;
                     if (user != null) {
                         user.setStatus(statusList.get(selectedListItemIndex));
+                        // update server info
+                        String result = db.setUserInfo(latitude, longitude, timestamp, user.getStatus());
+                        if (result.equals("success")) {
+                            Log.i(TAG, "User data updated server-side");
+                        }
+                        else {
+                            Log.e(TAG, "Failed to update user data server-side");
+                        }
                         Log.d(TAG, "Set status to " + user.getStatus());
                     } else {
                         Log.d(TAG, "Cannot status " + statusList.get(truePosition) + " to null user");
@@ -206,9 +223,5 @@ public class UpdateStatusActivity extends AppCompatActivity {
                 Log.d(TAG, "cancelled");
             }
         }
-    }
-
-    public static int getStatusColor() {
-        return selected_status_color;
     }
 }

@@ -143,9 +143,10 @@ public class MainActivity extends AppCompatActivity implements
         // update map to reflect any changes in contact list
         // need this for when onMapReady is not called upon resuming the activity, ie. when an activity is displayed as a dialog
         if (mMap != null && user != null && trackingIsEnabled) {
-            // TODO post info
-            updateContactLocations();
-            mapUpdated = true;
+            if (!mapUpdated) {
+                updateContactLocations();
+                mapUpdated = true;
+            }
         }
     }
 
@@ -192,7 +193,10 @@ public class MainActivity extends AppCompatActivity implements
             // send location info on initialization to server and display contacts
             if (user != null && user.isRegistered() && trackingIsEnabled) {
                 db.setUserInfo(latLng.latitude, latLng.longitude, mCurrentLocation.getTime(), "");
-                updateContactLocations();
+                if (!mapUpdated) {
+                    updateContactLocations();
+                    mapUpdated = true;
+                }
             }
             Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude + "\n"
                 + "Time: " + mCurrentLocation.getTime());
@@ -361,10 +365,6 @@ public class MainActivity extends AppCompatActivity implements
             for (ContactMapWrapper c : mapContacts) {
                 LatLng contactLatLng = new LatLng(c.getContact().getLocation().getLatitude(),
                         c.getContact().getLocation().getLongitude());
-                c.setMarker(mMap.addMarker(new MarkerOptions()
-                        .position(contactLatLng)
-                        .title(c.getContact().getName())
-                ));
 
                 markerSnippetString = "";
                 // include contact status, if one exists
@@ -376,7 +376,11 @@ public class MainActivity extends AppCompatActivity implements
                 String timeOfLastUpdate = (String)DateFormat.format("HH:mm", c.getContact().getLocation().getTime());
                 markerSnippetString += "last updated at " + timeOfLastUpdate;
 
-                c.getMarker().setSnippet(markerSnippetString);
+                c.setMarker(mMap.addMarker(new MarkerOptions()
+                        .position(contactLatLng)
+                        .title(c.getContact().getName())
+                        .snippet(markerSnippetString)
+                ));
             }
         }
     }
@@ -435,7 +439,6 @@ public class MainActivity extends AppCompatActivity implements
     private void login() {
         user = User.getInstance();
         userIsLoggedIn = true;
-        updateContactLocations();
         enableTracking();
         updateOptionsMenu();
         Toast.makeText(this, "Logged in as " + user.getUsername(), Toast.LENGTH_SHORT).show();
@@ -543,6 +546,9 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case R.id.action_update_status:
                 intent = new Intent(this, UpdateStatusActivity.class);
+                intent.putExtra(getResources().getString(R.string.KEY_LATITUDE), mCurrentLocation.getLatitude());
+                intent.putExtra(getResources().getString(R.string.KEY_LONGITUDE), mCurrentLocation.getLongitude());
+                intent.putExtra(getResources().getString(R.string.KEY_TIMESTAMP), mCurrentLocation.getTime());
                 startActivity(intent);
                 break;
             case R.id.action_register:
