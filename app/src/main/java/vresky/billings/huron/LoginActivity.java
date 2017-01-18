@@ -28,7 +28,6 @@ public class LoginActivity extends Activity {
 
         final EditText etUserId = (EditText)findViewById(R.id.et_user_id);
         final EditText etPassword = (EditText)findViewById(R.id.et_user_pwd);
-//        final CheckBox chkRememberMe = (CheckBox)findViewById(R.id.chk_remember_me);
         Button btnLogin = (Button)findViewById(R.id.btn_login);
         Button btnCancel = (Button)findViewById(R.id.btn_cancel);
 
@@ -52,15 +51,16 @@ public class LoginActivity extends Activity {
                     // returns username if authentication was successful
                     String authenticationResult = db.authUser(userId, passwordInput);
                     String errorMsg = "";
-                    if (authenticationResult == "unauth") {
+                    if (authenticationResult.equals("unauth")) {
                         errorMsg = "Incorrect login credentials";
-                    } else if (authenticationResult == "error") {
+                    } else if (authenticationResult.equals("error")) {
                         errorMsg = "An error occurred";
                     }
                     // success
                     else {
                         user.setUserId(userId);
                         user.setUsername(authenticationResult);
+                        user.setStatus("");
                         setResult(RESULT_OK);
                     }
                     if (!errorMsg.isEmpty()) {

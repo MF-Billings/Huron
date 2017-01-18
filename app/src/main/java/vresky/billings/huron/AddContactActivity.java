@@ -62,8 +62,10 @@ public class AddContactActivity extends Activity {
                    if (user.isRegistered()) {
                        // the user shouldn't be able to add themselves as a contact
                        if (nContactIdInput == user.getUserId()) {
-//                           operationUserFeedback = "You cannot add yourself as a contact";
-//                           isValidInputId = false;
+                           if (!Helper.appInDebugMode) {
+                               operationUserFeedback = "You cannot add yourself as a contact";
+                               isValidInputId = false;
+                           }
                        } else {
                            // the user shouldn't be able to add the same contact more than once
                            for (Contact c : user.getContacts()) {

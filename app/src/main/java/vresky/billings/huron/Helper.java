@@ -16,6 +16,8 @@ import vresky.billings.huron.Database.DatabaseInterface;
 
 public class Helper {
 
+    public static boolean appInDebugMode = true;
+
     // LOCATIONS FOR DEBUG
     public static final LatLng ALPHIES_TROUGH = new LatLng(43.121159, -79.250452);
     public static final LatLng ALUMNI_FIELD = new LatLng(43.11917, -79.252973);

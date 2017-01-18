@@ -2,6 +2,7 @@ package vresky.billings.huron;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -35,6 +36,7 @@ import vresky.billings.huron.Database.DatabaseInterface;
 public class UpdateStatusActivity extends AppCompatActivity {
 
     private final String TAG = this.getClass().getSimpleName();
+    private static int selected_status_color = Color.CYAN;
     private static final int ADD_STATUS_REQUEST = 1;
     private static final String KEY_SAVED_STATUS_INDEX = "Selected Index";
 
@@ -223,5 +225,9 @@ public class UpdateStatusActivity extends AppCompatActivity {
                 Log.d(TAG, "cancelled");
             }
         }
+    }
+
+    public static int getStatusColor() {
+        return selected_status_color;
     }
 }

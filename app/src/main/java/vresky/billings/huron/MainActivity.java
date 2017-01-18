@@ -1,9 +1,11 @@
 package vresky.billings.huron;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,9 +15,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -29,6 +35,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
@@ -71,7 +78,6 @@ public class MainActivity extends AppCompatActivity implements
     private final int LOGIN_REQUEST = 2;
 
     private User user;                  // the app user
-    private SharedPreferences prefs;
     private DatabaseInterface db;
     private Menu optionsMenu;           // allow access of toolbar menu outside toolbar-specific methods
     private List<ContactMapWrapper> mapContacts = new ArrayList<>();
@@ -115,16 +121,7 @@ public class MainActivity extends AppCompatActivity implements
         db = DatabaseInterface.getInstance();
 
         // determine if user is registered
-        if (user == null) {
-            // get user id if one exists
-            prefs = getSharedPreferences(getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
-            int userId = prefs.getInt(getResources().getString(R.string.KEY_USER_ID), User.USER_ID_NOT_FOUND);
-            // user has already registered
-            if (userId == User.USER_ID_NOT_FOUND) {
-                // ?
-            }
-        }
-        else {
+        if (user != null) {
             populateUsersContactList();
         }
     }
@@ -172,6 +169,35 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressWarnings("MissingPermission")
     public void onMapReady(GoogleMap map) {
         mMap = map;
+        // allows for multi-line snippet
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker marker) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+                Context context = MainActivity.this;
+                LinearLayout layout = new LinearLayout(context);
+                layout.setOrientation(LinearLayout.VERTICAL);
+
+                TextView title = new TextView(context);
+                title.setTextColor(Color.BLACK);
+                title.setGravity(Gravity.CENTER);
+                title.setTypeface(null, Typeface.BOLD);
+                title.setText(marker.getTitle());
+
+                TextView snippet = new TextView(context);
+                snippet.setTextColor(Color.GRAY);
+                snippet.setGravity(Gravity.CENTER);
+                snippet.setText(marker.getSnippet());
+
+                layout.addView(title);
+                layout.addView(snippet);
+                return layout;
+            }
+        });
 
         // someone logged in at some point when the app was in the foreground
         if (user != null) {
@@ -369,7 +395,7 @@ public class MainActivity extends AppCompatActivity implements
                 markerSnippetString = "";
                 // include contact status, if one exists
                 if (!c.getContact().getStatus().equals("")) {
-                    markerSnippetString = c.getContact().getStatus() + " - ";
+                    markerSnippetString = c.getContact().getStatus() + "\n";
                 }
                 // add the time the contact data was last updated to the snippet
                 // convert time in milliseconds to human-readable format
@@ -469,8 +495,7 @@ public class MainActivity extends AppCompatActivity implements
                 updateStatusAction.setVisible(false);
                 logoutAction.setVisible(false);
                 updateMapAction.setVisible(false);
-                // DEBUG
-//                getInfoAction.setVisible(false);
+                getInfoAction.setVisible(false);
                 registerAction.setVisible(true);
                 loginAction.setVisible(true);
             }
@@ -480,14 +505,6 @@ public class MainActivity extends AppCompatActivity implements
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REGISTER_REQUEST) {
             if (resultCode == RESULT_OK) {
-                // successful registration
-                // remove registration action
-                // DEBUG put this back when testing requiring frequent use of different users is done
-//                if (optionsMenu != null) {
-//                    MenuItem item = optionsMenu.findItem(R.id.action_register);
-//                    item.setVisible(false);
-//                    invalidateOptionsMenu();
-//                }
             }
         } else if (requestCode == LOGIN_REQUEST) {
             if (resultCode == RESULT_OK) {
@@ -503,13 +520,6 @@ public class MainActivity extends AppCompatActivity implements
         optionsMenu = menu;
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
-        // hide registration option if an existing user id is stored
-        // DEBUG remove
-        if (user != null && user.isRegistered()) {
-//            MenuItem item = menu.findItem(R.id.action_register);
-//            item.setVisible(false);
-//            invalidateOptionsMenu();
-        }
         optionsMenu = menu;
         updateOptionsMenu();
         return true;
@@ -552,11 +562,8 @@ public class MainActivity extends AppCompatActivity implements
                 startActivity(intent);
                 break;
             case R.id.action_register:
-                // only allow registration if user doesn't have a user id
-//                if (!user.isRegistered()) {
-                    intent = new Intent(this, RegistrationActivity.class);
-                    startActivityForResult(intent, REGISTER_REQUEST);
-//                }
+                intent = new Intent(this, RegistrationActivity.class);
+                startActivityForResult(intent, REGISTER_REQUEST);
                 break;
             case R.id.action_login:
                 intent = new Intent(this, LoginActivity.class);
