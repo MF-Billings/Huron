@@ -3,7 +3,6 @@ package vresky.billings.huron;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AlertDialog;
@@ -76,9 +75,9 @@ public class StatusAdapter extends BaseAdapter {
             int positionToSelect = prefs.getInt("Selected Index", -1);
 
             if (positionToSelect != -1) {
-                view.setBackgroundColor(Color.TRANSPARENT);
+//                view.setBackgroundColor(Color.TRANSPARENT);
                 if (position == positionToSelect) {
-                    view.setBackgroundColor(Color.CYAN);
+//                    view.setBackgroundColor(Color.CYAN);
                     selectedItem = view;
                 }
             }

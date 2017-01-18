@@ -33,7 +33,7 @@ public class Helper {
      */
     public static List<Contact> retrieveContacts(String tag, User user, DatabaseInterface db) {
         ArrayList<Contact> contactsList = new ArrayList<>();
-        String getContactsInfoResult = db.getContactsInfo(user.getUserId());
+        String getContactsInfoResult = db.getContactsInfo();
         if (getContactsInfoResult.equals("null")) {
             Log.d(tag, "No registered user with id " + user.getUserId());
         } else if (getContactsInfoResult.equals("error")) {

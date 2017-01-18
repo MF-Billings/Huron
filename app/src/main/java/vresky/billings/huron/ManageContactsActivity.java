@@ -82,7 +82,7 @@ public class ManageContactsActivity extends AppCompatActivity {
         if (requestCode == ADD_CONTACT_REQUEST) {
             if (resultCode == RESULT_OK) {
                 // replace contacts list (no method for returning added contact and adding individually)
-                String getContactsInfoResult = db.getContactsInfo(user.getUserId());
+                String getContactsInfoResult = db.getContactsInfo();
                 if (getContactsInfoResult.equals("null")) {
                     Log.d(TAG, "No registered user with id " + user.getUserId());
                 }
@@ -110,7 +110,7 @@ public class ManageContactsActivity extends AppCompatActivity {
     }
 
     private void retrieveContacts() {
-        String getContactsInfoResult = db.getContactsInfo(user.getUserId());
+        String getContactsInfoResult = db.getContactsInfo();
         if (getContactsInfoResult.equals("null")) {
             Log.d(TAG, "No registered user with id " + user.getUserId() + ". No contacts to retrieve.");
         }

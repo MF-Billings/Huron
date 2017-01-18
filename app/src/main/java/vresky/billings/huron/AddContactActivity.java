@@ -76,7 +76,7 @@ public class AddContactActivity extends Activity {
                        }
 
                        if (isValidInputId) {
-                           addContactResult = db.addContact(user.getUserId(), nContactIdInput);
+                           addContactResult = db.addContact(nContactIdInput);
 
                            // catch server-side errors
                            if (addContactResult.equals("error")) {

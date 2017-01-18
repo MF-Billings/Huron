@@ -15,7 +15,13 @@
             android:id="@+id/et_user_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/your_user_id_message"/>
+            android:hint="@string/your_user_id_message"
+            android:inputType="number"/>
+        <EditText
+            android:id="@+id/et_user_pwd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Your password"/>
         <!--<CheckBox-->
             <!--android:id="@+id/chk_remember_me"-->
             <!--android:layout_width="wrap_content"-->

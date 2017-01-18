@@ -2,7 +2,6 @@ package vresky.billings.huron;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,6 +16,7 @@ public class LoginActivity extends Activity {
 
     public static final String TAG = LoginActivity.class.getSimpleName();
     private DatabaseInterface db = null;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,8 +24,10 @@ public class LoginActivity extends Activity {
         setContentView(R.layout.activity_login);
 
         db = DatabaseInterface.getInstance();
+        user = User.getInstance();
 
         final EditText etUserId = (EditText)findViewById(R.id.et_user_id);
+        final EditText etPassword = (EditText)findViewById(R.id.et_user_pwd);
 //        final CheckBox chkRememberMe = (CheckBox)findViewById(R.id.chk_remember_me);
         Button btnLogin = (Button)findViewById(R.id.btn_login);
         Button btnCancel = (Button)findViewById(R.id.btn_cancel);
@@ -41,55 +43,36 @@ public class LoginActivity extends Activity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO set userAccount with result from server query
-                User userAccount = new User();
-                int userId = Integer.valueOf(etUserId.getText().toString());
+                String loginInput = etUserId.getText().toString();
+                String passwordInput = etPassword.getText().toString();
 
-                // store user info if checkbox is checked
+                if (loginInput.matches("\\d+")) {
+                    int userId = Integer.valueOf(loginInput);
 
-                boolean userWithGivenIdExist = true;
-                if (userWithGivenIdExist) {
-                    // JJ id 1
-                    // Bj id 2
-                    // TheLofts id 4
-                    // DEBUG for testing different user's without server support
-                    User user = null;
-
-                    // client-side login for demonstrative purposes
-//                    int maxNumberOfAccounts = 4;
-//                    String[] userNames = new String[maxNumberOfAccounts];
-//                    for (int i = 0; i < maxNumberOfAccounts; i++) {
-//                        userNames[i] = "PLACEHOLDER!";
-//                    }
-//                    for (int i = 0; i < maxNumberOfAccounts; i++) {
-//                        if (userId == i) {
-//                            user.setUserId(i);
-//                            user.setUsername(userNames[i]);
-//                            user.setStatus("");
-//                            user.setContacts(new ArrayList<Contact>());
-//                            break;
-//                        }
-//                    }
-                    switch (userId) {
-                        case 1:
-                            user = new User(userId, "JJ", "chillin'");
-                            break;
-                        case 6:
-                            user = new User(userId, "Ken", "staying calm");
-                            break;
-                        case 20:
-                            user = new User(userId, "20", "following myself");
-                            break;
+                    // returns username if authentication was successful
+                    String authenticationResult = db.authUser(userId, passwordInput);
+                    String errorMsg = "";
+                    if (authenticationResult == "unauth") {
+                        errorMsg = "Incorrect login credentials";
+                    } else if (authenticationResult == "error") {
+                        errorMsg = "An error occurred";
                     }
-
-                    if (user != null) {
+                    // success
+                    else {
+                        user.setUserId(userId);
+                        user.setUsername(authenticationResult);
                         setResult(RESULT_OK);
-                        Log.i(TAG, String.format("Logged in as user %s with id %d", user.getUsername(), user.getUserId()));
-                    } else {
-                        // display message to user that no one with that account number could be found
-                        Toast.makeText(LoginActivity.this, "user with id " + userId + " does not exist", Toast.LENGTH_SHORT).show();
+                    }
+                    if (!errorMsg.isEmpty()) {
+                        Toast.makeText(LoginActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                     }
                 }
+                // wrong input data
+                else {
+                    Toast.makeText(LoginActivity.this, "You must enter an integer number for user id",
+                            Toast.LENGTH_SHORT).show();
+                }
+
                 finish();
             }
         });

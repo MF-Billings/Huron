@@ -9,8 +9,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-
 import vresky.billings.huron.Database.DatabaseInterface;
 
 /**
@@ -30,6 +28,7 @@ public class RegistrationActivity extends Activity {
         setContentView(R.layout.activity_register);
 
         final EditText etUsername = (EditText)findViewById(R.id.et_username);
+        final EditText etPassword = (EditText)findViewById(R.id.et_password);
         Button btnCancel = (Button)findViewById(R.id.btn_cancel);
         Button btnRegister = (Button)findViewById(R.id.btn_register);
         TextView tvCharLimit = (TextView)findViewById(R.id.tv_char_limit) ;
@@ -59,30 +58,15 @@ public class RegistrationActivity extends Activity {
             @Override
             public void onClick(View v) {
                 String userName = etUsername.getText().toString();
+                String password = etPassword.getText().toString();
 
                 // add user to database if the input is valid
                 if (!userName.isEmpty()) {
-                    String result = db.addUser(userName, "GNDN");
+                    String result = db.addUser(userName, password);
 
                     // result should return an integer id if the statement was successful
                     if (result.matches("\\d+")) {
-                        // DEBUG
-                        // equivalent to a session-only login
-                        if (user.isRegistered()) {
-                            user.setUserId(Integer.valueOf(result));
-                            user.setStatus("test status");
-                            user.setUsername(userName);
-                            user.setContacts(new ArrayList<Contact>());
-                        }
-                        // store user data
-//                        SharedPreferences prefs = getSharedPreferences(
-//                                getResources().getString(R.string.APP_TAG), MODE_PRIVATE);
-//                        SharedPreferences.Editor prefsEditor = prefs.edit();
-//                        prefsEditor.putInt(getResources().getString(R.string.KEY_USER_ID), user.getUserId());
-//                        prefsEditor.putString(getResources().getString(R.string.KEY_USERNAME), userName);
-//                        prefsEditor.apply();
-                        registrationIsSuccessful = true;
-                        Log.i(TAG, "user with id " + user.getUserId() + " added");
+                        Toast.makeText(RegistrationActivity.this, result, Toast.LENGTH_LONG).show();
                     } else {
                         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
                         Log.e(TAG, "User could not be added to database" + stackTraceElements.toString());

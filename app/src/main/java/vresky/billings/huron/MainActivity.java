@@ -47,7 +47,7 @@ import vresky.billings.huron.Database.DatabaseInterface;
     - for some reason the blue dot that normally appears to indicate the user's position will not
     appear until the map coordinates are sent to the device, through the extended controls for instance.
     A result of this is that the button in the top-right corner of the map that moves the camera to
-    the user's current position will not work.
+    the user's current position will not work at this point.
 
     - when location permission is requested upon running the app, the map does not receive the
     coordinates of the users location, and while the MyLocation button will de displayed in the
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements
     private final int REGISTER_REQUEST = 1;
     private final int LOGIN_REQUEST = 2;
 
-    private User user;       // the app user
+    private User user;                  // the app user
     private SharedPreferences prefs;
     private DatabaseInterface db;
     private Menu optionsMenu;           // allow access of toolbar menu outside toolbar-specific methods
@@ -113,12 +113,6 @@ public class MainActivity extends AppCompatActivity implements
 
         trackingIsEnabled = true;           // gotta do it somewhere!
         db = DatabaseInterface.getInstance();
-        // DEBUG
-        user = User.getInstance();
-        user.setUserId(20);
-        user.setUsername("20");
-        user.setStatus("current default user account");
-        userIsLoggedIn = true;
 
         // determine if user is registered
         if (user == null) {
@@ -197,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements
 
             // send location info on initialization to server and display contacts
             if (user != null && user.isRegistered() && trackingIsEnabled) {
-                db.setUserInfo(user.getUserId(), latLng.latitude, latLng.longitude, mCurrentLocation.getTime(), "");
+                db.setUserInfo(latLng.latitude, latLng.longitude, mCurrentLocation.getTime(), "");
                 updateContactLocations();
             }
             Log.d(TAG, "Current LatLng: " + latLng.latitude + ", " + latLng.longitude + "\n"
@@ -251,17 +245,9 @@ public class MainActivity extends AppCompatActivity implements
             // update location marker for user
             if (mMap != null) {
                 // update server info
-                if (user.isRegistered()) {
-                    String result = db.setUserInfo(user.getUserId(), location.getLatitude(), location.getLongitude(),
-                            location.getTime(), user.getStatus());
-
-                    if (result.equals("error")) {
-                        Log.d(TAG, "setUserInfo failed at onLocationChanged");
-                    }
-                }
                 Log.i(TAG, "Current LatLng: " + location.getLatitude() + ", " + location.getLongitude() + "\n"
                         + "Time: " + DateFormat.format("dd-MM-yyyy", mCurrentLocation.getTime()) + "\n"
-                        +  ((user.isRegistered()) ? "User data updated server-side" : ""));
+                        +  ((user != null && user.isRegistered()) ? "User data updated server-side" : ""));
             }
         }
     }
@@ -423,7 +409,7 @@ public class MainActivity extends AppCompatActivity implements
                 mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
                 if (user != null) {
-                    db.setUserInfo(user.getUserId(), mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(),
+                    db.setUserInfo(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(),
                             mCurrentLocation.getTime(), user.getStatus());
                     updateContactLocations();
                 }
@@ -547,7 +533,7 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case R.id.action_update_map:
                 // get the most recent contact data and update the server-side user data
-                db.setUserInfo(user.getUserId(), mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(),
+                db.setUserInfo(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(),
                     mCurrentLocation.getTime(), user.getStatus());
                 updateContactLocations();
                 break;

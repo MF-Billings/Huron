@@ -41,7 +41,6 @@ public class UpdateStatusActivity extends AppCompatActivity {
     private List<String> statusList;
     private StatusAdapter statusAdapter;            // easily call adapter notify functions
     private ListView lvStatus;
-    private View selectedListItem;
     private User user;
     private int selectedListItemIndex = -1;         // -1 used when no item has been selected
 
@@ -79,24 +78,15 @@ public class UpdateStatusActivity extends AppCompatActivity {
                 view.findViewById(R.id.btn_delete);
                 // header offsets position by 1
                 int truePosition = position - 1;
-                // remove highlighting from "remembered" status when another item is clicked
-                // this section pertaining to the addition or removal of highlights could likely be made more succinct
-                if (StatusAdapter.selectedItem != null) {
-                    StatusAdapter.selectedItem.setBackgroundColor(Color.TRANSPARENT);
-                }
-                // turn off highlighting from previously selected item and enable selection on new item
-                if (selectedListItem == null) {
-                    selectedListItem = view;
-                }
-                selectedListItem.setBackgroundColor(Color.TRANSPARENT);
-                selectedListItem = view;
-                selectedListItemIndex = truePosition;
-                selectedListItem.setBackgroundColor(selected_status_color);
-                if (user != null) {
-                    user.setStatus(statusList.get(selectedListItemIndex));
-                    Log.d(TAG, "Set status to " + user.getStatus());
-                } else {
-                    Log.d(TAG, "Cannot status " + statusList.get(truePosition) + " to null user");
+                // 0 is the position of the header view
+                if (truePosition >= 0) {
+                    selectedListItemIndex = truePosition;
+                    if (user != null) {
+                        user.setStatus(statusList.get(selectedListItemIndex));
+                        Log.d(TAG, "Set status to " + user.getStatus());
+                    } else {
+                        Log.d(TAG, "Cannot status " + statusList.get(truePosition) + " to null user");
+                    }
                 }
             }
         });
@@ -121,8 +111,9 @@ public class UpdateStatusActivity extends AppCompatActivity {
             }
             // DEBUG test list re-population with defaults
             if (statusList.isEmpty()) {
-                // TODO move the code from the catch to here?
-                throw new FileNotFoundException();
+                String[] defaultStatusList = getResources().getStringArray(R.array.default_status_array);
+                statusList.addAll(Arrays.asList(defaultStatusList));
+                Toast.makeText(UpdateStatusActivity.this, "Status list empty. Using defaults.", Toast.LENGTH_SHORT).show();
             }
             bReader.close();
         } catch (FileNotFoundException e) {

@@ -8,70 +8,80 @@ import java.io.Serializable;
  * Uses DatabaseAsyncTask to push and pull data from web service.
  * Web service built by Patrick.
  *
- * Simple singleton. Not thread safe or rigorous.  This was implemented largely to alleviate the
- * need to pass references to the same database object between activities.
- */
+ **/
 
 public class DatabaseInterface implements Serializable {
 
-    private static DatabaseInterface instance = null;       // do not access directly
+    private static DatabaseInterface instance = null;
     private int userID;
     private String userName;
+    private String password;
+    private String sessionID;
 
     DatabaseAsyncTask dbat;
-    /**
-     * default constructor if no userName is set
-     */
-//    public DatabaseInterface() { }
-//
-//    // constructor that sets the userID
-//    public DatabaseInterface(int userID) {
-//        this.userID = userID;
-//    }
 
-//    /**
-//     * use once the user has added himself to the database (this will be implemented soon)
-//     * @param userID
-//     * @param password
-//     */
-//    public DatabaseInterface(int userID, String password) {
-//        this.userID = userID;
-//        //authUser(userName, password);
-//    }
-//
     // prevents instantiation
-    protected DatabaseInterface() {}
+    protected DatabaseInterface() {
+        userID = 0;
+        userName = "";
+    }
 
+    // default constructor if no userName is set
     public static DatabaseInterface getInstance() {
         if (instance == null)
             instance = new DatabaseInterface();
         return instance;
     }
 
-
-    /**
-     * Add a user to the database.  The username cannot contain spaces or it returns "server error"
-     * @param userName
-     * @param password
-     * @return the user id if success and "server error" otherwise
-     */
+    // returns userid if addUser operation successful
+    // returns "error" on error
     public String addUser(String userName, String password) {
+        this.userName = userName;
+        this.password = password;
         dbat = new DatabaseAsyncTask();
         try {
-            String url = "http://pv.gotdns.ch/android/adduser.php?username=" + userName + "&password=" + password;
-            return dbat.execute(url).get();
+            String url = "http://pv.gotdns.ch/android2/adduser.php?username=" + userName + "&password=" + password;
+            String result = dbat.execute(url).get();
+            String[] parts = result.split(" ");
+            userID = Integer.valueOf(parts[0]);
+            sessionID = parts[1];
+            //Log.d("ADDUSER", "" + userID);
+            //Log.d("ADDUSER", sessionID);
+            return parts[0];
         } catch (Exception e) {
             e.printStackTrace();
         }
         return "error";
     }
 
-    /**
-     *
-     * @param userID
-     * @return "success" or "error" depending upon result
-     */
-    public String removeUser(int userID) {
+    // checks user password and updates and returns session key, returns "error" otherwise
+    // returns userName if it works or "unauth" if wrong password or "error" otherwise
+    public String authUser(int userID, String password) {
+        this.userID = userID;
+        this.password = password;
+        this.sessionID = "";
+        dbat = new DatabaseAsyncTask();
+        try {
+            String url = "http://pv.gotdns.ch/android2/authuser.php?userid=" + userID + "&password=" + password;
+            String result = dbat.execute(url).get();
+            if (result.equals("error") || result.equals("unauth")) return "error";
+            else {
+                String[] parts = result.split(" ");
+                userName = parts[0];
+                sessionID = parts[1];
+                //Log.d("AUTHUSER", "" + userName);
+                //Log.d("AUTHUSER", sessionID);
+                return userName;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "error";
+    }
+
+    // returns "success" if remove user operation successful
+    // returns "error" on error
+/*    public String removeUser(int userID) {
         dbat = new DatabaseAsyncTask();
         try {
             String url = "http://pv.gotdns.ch/android/removeuser.php?userid=" + userID;
@@ -81,17 +91,16 @@ public class DatabaseInterface implements Serializable {
         }
         return "error";
     }
+*/
 
-    /**
-     *
-     * @param userID
-     * @param contactID
-     * @return "success" or "error" depending upon result
-     */
-    public String addContact(int userID, int contactID) {
+    // returns "success" if add contact operation successful
+    // returns "error" on error
+    public String addContact(int contactID) {
         dbat = new DatabaseAsyncTask();
         try {
-            String url = "http://pv.gotdns.ch/android/addcontact.php?userid=" + userID + "&contactid=" + contactID;
+            String url = "http://pv.gotdns.ch/android2/addcontact.php?userid=" + userID +
+                    "&sessionid=" + sessionID +
+                    "&contactid=" + contactID;
             return dbat.execute(url).get();
         } catch (Exception e) {
             e.printStackTrace();
@@ -99,16 +108,14 @@ public class DatabaseInterface implements Serializable {
         return "error";
     }
 
-    /**
-     *
-     * @param userID
-     * @param contactID
-     * @return "success" or "error" depending upon result
-     */
-    public String removeContact(int userID, int contactID) {
+    // returns "success" if remove contact operation successful
+    // returns "error" on error
+    public String removeContact(int contactID) {
         dbat = new DatabaseAsyncTask();
         try {
-            String url = "http://pv.gotdns.ch/android/removecontact.php?userid=" + userID + "&contactid=" + contactID;
+            String url = "http://pv.gotdns.ch/android2/removecontact.php?userid=" + userID +
+                    "&sessionid=" + sessionID +
+                    "&contactid=" + contactID;
             return dbat.execute(url).get();
         } catch (Exception e) {
             e.printStackTrace();
@@ -116,19 +123,13 @@ public class DatabaseInterface implements Serializable {
         return "error";
     }
 
-    /**
-     *
-     * @param userID
-     * @param latitude
-     * @param longitude
-     * @param timestamp
-     * @param status
-     * @return "success" or "error"
-     */
-    public String setUserInfo(int userID, double latitude, double longitude, long timestamp, String status) {
+    // returns "success" if update operation successful
+    // returns "error" on error
+    public String setUserInfo(double latitude, double longitude, long timestamp, String status) {
         dbat = new DatabaseAsyncTask();
         try {
-            String url = "http://pv.gotdns.ch/android/setuserinfo.php?userid=" + userID +
+            String url = "http://pv.gotdns.ch/android2/setuserinfo.php?userid=" + userID +
+                    "&sessionid=" + sessionID +
                     "&latitude=" + latitude +
                     "&longitude=" + longitude +
                     "&timestamp=" + timestamp +
@@ -140,17 +141,13 @@ public class DatabaseInterface implements Serializable {
         return "error";
     }
 
-
-    /**
-     * returns JSON encoded contact information
-     * @param userID
-     * @return Use to return "null" if result set from database is empty, "error" on error.  Now
-     * location data should return 0 if there is no value provided in the database for it.
-     */
-    public String getContactsInfo(int userID) {
+    // returns JSON encoded contact information
+    // returns "null" if result set from ddatabase is empty
+    // returns "error" on error
+    public String getContactsInfo() {
         dbat = new DatabaseAsyncTask();
         try {
-            String url = "http://pv.gotdns.ch/android/getcontactinfo.php?userid=" + userID;
+            String url = "http://pv.gotdns.ch/android2/getcontactinfo.php?userid=" + userID + "&sessionid=" + sessionID;
             return dbat.execute(url).get();
         } catch (Exception e) {
             e.printStackTrace();

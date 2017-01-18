@@ -109,7 +109,7 @@ public class ContactsAdapter extends BaseAdapter {
 
         if (db != null) {
             Contact contactToRemove = contacts.get(position);
-            String removeResult = db.removeContact(userId, contactToRemove.getId());
+            String removeResult = db.removeContact(contactToRemove.getId());
             if (removeResult.equals("error")) {
                 Log.d(TAG, "Contact could not be removed server-side");
             }
