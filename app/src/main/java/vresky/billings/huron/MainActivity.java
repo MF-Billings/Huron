@@ -474,6 +474,7 @@ public class MainActivity extends AppCompatActivity implements
         if (optionsMenu != null) {
             MenuItem manageContactsAction = optionsMenu.findItem(R.id.action_manage_contacts);
             MenuItem updateStatusAction = optionsMenu.findItem(R.id.action_update_status);
+            MenuItem toggleTrackingAction = optionsMenu.findItem(R.id.action_toggle_tracking_visibility);
             MenuItem logoutAction = optionsMenu.findItem(R.id.action_logout);
             MenuItem updateMapAction = optionsMenu.findItem(R.id.action_update_map);
             MenuItem registerAction = optionsMenu.findItem(R.id.action_register);
@@ -486,9 +487,9 @@ public class MainActivity extends AppCompatActivity implements
                 logoutAction.setVisible(true);
                 updateMapAction.setVisible(true);
                 getInfoAction.setVisible(true);
+                toggleTrackingAction.setVisible(true);
                 registerAction.setVisible(false);
                 loginAction.setVisible(false);
-
             }
             else {
                 manageContactsAction.setVisible(false);
@@ -496,6 +497,7 @@ public class MainActivity extends AppCompatActivity implements
                 logoutAction.setVisible(false);
                 updateMapAction.setVisible(false);
                 getInfoAction.setVisible(false);
+                toggleTrackingAction.setEnabled(false);
                 registerAction.setVisible(true);
                 loginAction.setVisible(true);
             }

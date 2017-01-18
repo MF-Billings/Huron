@@ -26,7 +26,8 @@ public class StatusAdapter extends BaseAdapter {
     private final String TAG = this.getClass().toString();
     private Context context;
     private List<String> statusList;
-    static View selectedItem;
+    View selectedItem;
+    int selectedItemIndex;
     static boolean isFirstTimeRunning = true;
 
 
@@ -47,6 +48,7 @@ public class StatusAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int position) {
+        selectedItemIndex = position;
         return statusList.get(position);
     }
 

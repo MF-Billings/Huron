@@ -106,6 +106,11 @@ public class AddStatusActivity extends Activity {
                             getResources().getString(R.string.invalid_status_edit_message_empty));
                     setResult(RESULT_CANCELED, returnIntent);
                 }
+                else if (newStatus.contains(" ")) {
+                    returnIntent.putExtra(getResources().getString(R.string.KEY_INVALID_STATUS_EDIT),
+                            "A status cannot contain spaces");
+                    setResult(RESULT_CANCELED, returnIntent);
+                }
                 // status is valid
                 else {
                     returnIntent.putExtra(getResources().getString(R.string.KEY_NEW_STATUS), newStatus);
